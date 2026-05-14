@@ -47,7 +47,7 @@ export default function RootLayout({
 
   const router = useRouter();
   const pathname = usePathname();
-  const showManualLink = profile?.rol_usuario === 'seniat' || profile?.rol_usuario === 'tecnico';
+  const showManualLink = !!profile?.rol_usuario;
 
   // 1. Theme Logic
   useEffect(() => {
