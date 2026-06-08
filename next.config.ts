@@ -1,7 +1,27 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
+
+const apiUpstream =
+  process.env.API_UPSTREAM_URL?.trim() ||
+  process.env.NEXT_PUBLIC_API_URL?.trim() ||
+  'https://core-xgfvw.ondigitalocean.app';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  env: {
+    NEXT_PUBLIC_USE_API_PROXY:
+      process.env.NEXT_PUBLIC_USE_API_PROXY ??
+      (process.env.VERCEL ? 'true' : 'false'),
+  },
+  async rewrites() {
+    const upstream = apiUpstream.replace(/\/$/, '');
+    return {
+      fallback: [
+        {
+          source: '/api/:path*',
+          destination: `${upstream}/api/:path*`,
+        },
+      ],
+    };
+  },
 };
 
 export default nextConfig;

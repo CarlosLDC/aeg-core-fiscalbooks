@@ -19,7 +19,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { profile, loading: authLoading, tecnicoDistribuidoraId } = useUserProfile();
+    const { profile, loading: authLoading } = useUserProfile();
     const [printer, setPrinter] = useState<FiscalPrinter | undefined>(undefined);
     const [loading, setLoading] = useState(true);
 
@@ -41,15 +41,12 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
 
         const loadData = async () => {
             setLoading(true);
-            const data = await printerService.getPrinterById(id, {
-                restrictToDistribuidoraId:
-                    profile?.rol_usuario === 'tecnico' ? tecnicoDistribuidoraId ?? null : undefined,
-            });
+            const data = await printerService.getPrinterById(id);
             setPrinter(data);
             setLoading(false);
         };
         loadData();
-    }, [id, authLoading, profile?.rol_usuario, tecnicoDistribuidoraId]);
+    }, [id, authLoading, profile?.rol_usuario]);
 
     const queryString = searchParams.toString();
 

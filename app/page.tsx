@@ -41,7 +41,7 @@ function scrollResultsSectionIntoView(resultsEl: HTMLElement | null) {
 
 export default function SearchPage() {
   const router = useRouter();
-  const { profile, loading: authLoading, tecnicoDistribuidoraId } = useUserProfile();
+  const { profile, loading: authLoading } = useUserProfile();
   
   // State
   const [searchTerm, setSearchTerm] = useState('');
@@ -107,26 +107,7 @@ export default function SearchPage() {
     }
 
     try {
-      // TODO: Restaurar validación cuando se arregle el problema de distribuidora_id
-      if (profile?.rol_usuario === 'tecnico' && tecnicoDistribuidoraId == null) {
-        setErrorMessage(
-          'Su perfil técnico no tiene distribuidora vinculada en el directorio de empleados. No puede listar equipos.'
-        );
-        setHasSearched(true);
-        setResults([]);
-        setTotalCount(0);
-        setLoading(false);
-        return;
-      }
-
-      const searchOpts =
-        profile?.rol_usuario === 'tecnico' && tecnicoDistribuidoraId != null
-          ? { distribuidoraId: tecnicoDistribuidoraId }
-          : undefined;
-
-      console.log('[DEBUG] page.tsx - rol:', profile?.rol_usuario, 'distribuidoraId:', tecnicoDistribuidoraId, 'searchOpts:', searchOpts);
-
-      const { data, count } = await printerService.searchPrinters(searchTerm, page, size, searchOpts);
+      const { data, count } = await printerService.searchPrinters(searchTerm, page, size);
 
       console.log('[DEBUG] page.tsx - resultados:', data.length, 'count:', count);
 

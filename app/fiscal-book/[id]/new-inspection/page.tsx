@@ -1,74 +1,68 @@
 'use client';
 
 import { useState, use, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { withTimeout } from '@/lib/timeout';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { fetchDirectorioEmpleados, type DirectorioEmpleadoRow } from '@/lib/tecnico-centro';
 import { useUserProfile } from '@/app/layout';
 import { canRegistrarServiciosEInspecciones } from '@/lib/roles';
 import { printerService } from '@/lib/printer-service';
+import { createAnnualInspection } from '@/lib/annual-inspections-api';
+import { resolveTechnicianForProfile } from '@/lib/technician-resolver';
+import { messageFromUnknownError } from '@/lib/api-error-message';
 import { ArrowLeft } from '@/components/icons';
 import { SuccessModal } from '@/components/success-modal';
+
+type InspectorInfo = {
+  employeeId: number;
+  employeeName: string;
+  employeeNationalId: string;
+};
 
 export default function NewAnnualInspection({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { profile, loading: authLoading, tecnicoDistribuidoraId } = useUserProfile();
+  const { profile, authProfile, loading: authLoading } = useUserProfile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // View Data
-  const [inspectoresData, setInspectoresData] = useState<DirectorioEmpleadoRow[]>([]);
-  const [loadingTecnicos, setLoadingTecnicos] = useState(true);
-  const [printer, setPrinter] = useState<any>(null);
+  const [loadingInspector, setLoadingInspector] = useState(true);
+  const [printer, setPrinter] = useState<Awaited<ReturnType<typeof printerService.getPrinterById>>>(undefined);
   const [loadingPrinter, setLoadingPrinter] = useState(true);
 
-  // Form state
-  const [idEmpleado, setIdEmpleado] = useState('');
   const [observaciones, setObservaciones] = useState('');
   const [precintoViolentado, setPrecintoViolentado] = useState(false);
   const [fechaInspeccion, setFechaInspeccion] = useState('');
-  const [inspectorInfo, setInspectorInfo] = useState<DirectorioEmpleadoRow | null>(null);
+  const [inspectorInfo, setInspectorInfo] = useState<InspectorInfo | null>(null);
 
   const [successOpen, setSuccessOpen] = useState(false);
   const [successRecordId, setSuccessRecordId] = useState<string | null>(null);
 
-  // Inspectores desde directorio de empleados (filtrado por rol en app si aplica)
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || !authProfile) return;
 
-    const fetchInspectores = async () => {
-      setLoadingTecnicos(true);
-      const rows = await fetchDirectorioEmpleados(supabase);
-      setInspectoresData(rows);
-      
-      // Auto-seleccionar el inspector actual si es técnico
-      if (profile?.rol_usuario === 'tecnico' && profile.id_empleado) {
-        const currentInspector = rows.find(t => t.empleado_id === profile.id_empleado);
-        if (currentInspector) {
-          setIdEmpleado(currentInspector.empleado_id.toString());
-          setInspectorInfo(currentInspector);
-        }
-      }
-      
-      setLoadingTecnicos(false);
-    };
-
-    const fetchPrinter = async () => {
+    const load = async () => {
+      setLoadingInspector(true);
       setLoadingPrinter(true);
-      const row = await printerService.getPrinterById(id, {
-        restrictToDistribuidoraId:
-          profile?.rol_usuario === 'tecnico' ? tecnicoDistribuidoraId ?? null : undefined,
-      });
-      setPrinter(row ?? null);
+
+      const resolved = await resolveTechnicianForProfile(authProfile);
+      if ('message' in resolved) {
+        setInspectorInfo(null);
+      } else {
+        setInspectorInfo({
+          employeeId: resolved.employeeId,
+          employeeName: resolved.employeeName,
+          employeeNationalId: resolved.employeeNationalId,
+        });
+      }
+
+      const row = await printerService.getPrinterById(id);
+      setPrinter(row);
+      setLoadingInspector(false);
       setLoadingPrinter(false);
     };
 
-    fetchInspectores();
-    fetchPrinter();
-  }, [id, authLoading, profile?.rol_usuario, tecnicoDistribuidoraId, profile?.id_empleado]);
+    load();
+  }, [id, authLoading, authProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,60 +70,33 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
     setError(null);
 
     try {
-      const { data: { user } } = await withTimeout(supabase.auth.getUser(), 8000);
-      if (!user) throw new Error('No se encontró una sesión activa.');
-
-      // Ownership Check
-      // Clean ID for database
       const cleanId = Number(id.replace('mock-p-', '').replace('fp-', ''));
 
-      if (!idEmpleado || !fechaInspeccion) {
+      if (!inspectorInfo?.employeeId || !fechaInspeccion) {
         throw new Error('Todos los campos marcados con (*) son obligatorios según el reglamento.');
       }
 
-      // --- Logic Validations ---
       const inspectionDate = new Date(fechaInspeccion);
       const today = new Date();
-      today.setHours(23, 59, 59, 999); // Allow today
+      today.setHours(23, 59, 59, 999);
 
       if (inspectionDate > today) {
         throw new Error('La fecha de inspección no puede ser futura.');
       }
 
-      const numEmpleado = Number(idEmpleado);
-
-      const inspector = inspectorInfo || inspectoresData.find(t => t.empleado_id === numEmpleado);
-      // const idCentroServicio = inspector?.centro_servicio_id; // Columna no existe en la tabla según el esquema proveído
-
-      const { data: insertedRow, error: insertError } = await withTimeout(
-        supabase
-          .from('inspecciones_anuales')
-          .insert([{
-            id_impresora: cleanId,
-            id_empleado: numEmpleado,
-            observaciones: observaciones || null,
-            precinto_violentado: precintoViolentado,
-            url_fotos: [],
-            fecha: fechaInspeccion,
-          }])
-          .select('id')
-          .maybeSingle(),
-        20000 // Higher timeout for inserts
-      );
-
-      if (insertError) throw insertError;
-
-      const insId = insertedRow?.id as number | undefined;
-      setSuccessRecordId(insId != null ? String(insId) : null);
-      setSuccessOpen(true);
-    } catch (err: any) {
-      console.error('Error insertando inspección anual:', {
-        message: err.message,
-        details: err.details,
-        hint: err.hint,
-        code: err.code
+      const created = await createAnnualInspection({
+        printerId: cleanId,
+        employeeId: inspectorInfo.employeeId,
+        sealTampered: precintoViolentado,
+        notes: observaciones || null,
+        photoUrls: [],
+        inspectionDate: fechaInspeccion,
       });
-      setError(err.message || 'Error al guardar la inspección anual.');
+
+      setSuccessRecordId(String(created.id));
+      setSuccessOpen(true);
+    } catch (err: unknown) {
+      setError(messageFromUnknownError(err));
     } finally {
       setLoading(false);
     }
@@ -214,37 +181,18 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
 
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <form onSubmit={handleSubmit} className="space-y-6">
-          
-          {/* Metadatos */}
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-4">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Inspector Responsable</label>
               {inspectorInfo ? (
                 <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500">
-                  {inspectorInfo.empleado_nombre} (V{inspectorInfo.empleado_cedula?.replace(/-/g, '')})
+                  {inspectorInfo.employeeName} (V{inspectorInfo.employeeNationalId?.replace(/-/g, '')})
                 </div>
               ) : (
                 <div className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-slate-400 animate-pulse">
-                  Cargando información del inspector...
+                  {loadingInspector ? 'Cargando información del inspector...' : 'No se pudo resolver el inspector.'}
                 </div>
               )}
-            </div>
-
-            <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Sucursal / empresa (según directorio)</label>
-              <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500">
-                {inspectorInfo
-                  ? `${inspectorInfo.empresa_razon_social} - ${inspectorInfo.sucursal_estado?.toUpperCase()}, ${inspectorInfo.sucursal_ciudad}`
-                  : idEmpleado
-                    ? (() => {
-                        const selected = inspectoresData.find(t => t.empleado_id.toString() === idEmpleado);
-                        return selected
-                          ? `${selected.empresa_razon_social} - ${selected.sucursal_estado?.toUpperCase()}, ${selected.sucursal_ciudad}`
-                          : '—';
-                      })()
-                    : 'Seleccione un inspector primero'
-                }
-              </div>
             </div>
           </div>
 
@@ -253,7 +201,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
             <input
               type="date"
               required
-              className="w-full max-w-xs px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+              className="w-full max-w-xs px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white"
               value={fechaInspeccion}
               onChange={(e) => setFechaInspeccion(e.target.value)}
             />
@@ -299,7 +247,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
             </Link>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !inspectorInfo}
               className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? 'Guardando...' : 'Guardar Inspección'}

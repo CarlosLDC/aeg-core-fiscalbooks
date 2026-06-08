@@ -1,18 +1,15 @@
 'use client';
 
 import { useState, use, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { withTimeout } from '@/lib/timeout';
-import {
-  fetchDirectorioEmpleados,
-  mergeDirectorioRowsForEmpleado,
-  resolveEmpleadoParaServicioTecnico,
-  type TecnicoCentroRow,
-  type DirectorioEmpleadoRow,
-} from '@/lib/tecnico-centro';
 import { useUserProfile } from '@/app/layout';
 import { canRegistrarServiciosEInspecciones } from '@/lib/roles';
 import { printerService } from '@/lib/printer-service';
+import type { FiscalPrinter } from '@/lib/types';
+import type { SealResponse } from '@/types/seal';
+import { createTechnicalService } from '@/lib/technical-services-api';
+import { fetchSeals } from '@/lib/seals-api';
+import { resolveTechnicianForProfile } from '@/lib/technician-resolver';
+import { messageFromUnknownError } from '@/lib/api-error-message';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { TimeInput } from '@/components/time-input';
@@ -24,6 +21,19 @@ import {
   toIsoUtc,
   diffDaysInclusive,
 } from '@/lib/datetime-local';
+
+type TecnicoCentroRow = {
+  tecnico_id: number;
+  centro_servicio_id: number | null;
+  distribuidora_id: number | null;
+  empleado_id: number;
+  empleado_nombre: string;
+  empleado_cedula: string | null;
+  empresa_razon_social: string | null;
+  empresa_rif: string | null;
+  sucursal_ciudad: string | null;
+  sucursal_estado: string | null;
+};
 
 const MAX_SERVICE_DAYS = 8;
 
@@ -52,7 +62,7 @@ function formatLugarServicio(r: TecnicoCentroRow) {
 export default function NewTechnicalService({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { profile, loading: authLoading, tecnicoDistribuidoraId } = useUserProfile();
+  const { profile, authProfile, loading: authLoading } = useUserProfile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +70,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
   const [tecnicosData, setTecnicosData] = useState<TecnicoCentroRow[]>([]);
   const [loadingTecnicos, setLoadingTecnicos] = useState(true);
   const [tecnicoLoadError, setTecnicoLoadError] = useState<string | null>(null);
-  const [printer, setPrinter] = useState<any>(null);
+  const [printer, setPrinter] = useState<FiscalPrinter | null>(null);
   const [loadingPrinter, setLoadingPrinter] = useState(true);
 
   // Form state
@@ -97,7 +107,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
   const [precintoViolentado, setPrecintoViolentado] = useState(false);
   const [sealReplaced, setSealReplaced] = useState(false);
   const [idPrecintoInstalado, setIdPrecintoInstalado] = useState('');
-  const [precintosDisponibles, setPrecintosDisponibles] = useState<any[]>([]);
+  const [precintosDisponibles, setPrecintosDisponibles] = useState<SealResponse[]>([]);
   const [loadingPrecintos, setLoadingPrecintos] = useState(false);
   const [idPrecintoActual, setIdPrecintoActual] = useState<number | null>(null);
   const [serialPrecintoActual, setSerialPrecintoActual] = useState<string | null>(null);
@@ -106,33 +116,16 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
   const [successRecordId, setSuccessRecordId] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadPrecintoActivo = async () => {
-      const cleanId = Number(id.replace('mock-p-', '').replace('fp-', ''));
-      if (!Number.isFinite(cleanId) || cleanId <= 0) {
-        setIdPrecintoActual(null);
-        setSerialPrecintoActual(null);
-        return;
-      }
-      const { data } = await withTimeout(
-        supabase
-          .from('precintos')
-          .select('id, serial')
-          .eq('id_impresora', cleanId)
-          .eq('estatus', 'en_impresora')
-          .maybeSingle(),
-        10000
-      );
-      setIdPrecintoActual(data?.id ?? null);
-      setSerialPrecintoActual(data?.serial ?? null);
-    };
-    loadPrecintoActivo();
-  }, [id]);
+    if (!printer?.precintos) return;
+    const activo = printer.precintos.find((p) => p.estatus === 'en_impresora' as const);
+    setIdPrecintoActual(activo ? Number(activo.id) : null);
+    setSerialPrecintoActual(activo?.serial ?? null);
+  }, [printer]);
 
-  // Fetch tecnicos + impresora (técnico: solo si la sucursal coincide)
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || !authProfile) return;
 
-    const fetchTecnicos = async () => {
+    const load = async () => {
       setLoadingTecnicos(true);
       setTecnicoLoadError(null);
       setTecnicoInfo(null);
@@ -141,96 +134,46 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       setIdCentroServicio('');
       setIdDistribuidora('');
 
-      const rows = await fetchDirectorioEmpleados(supabase);
-      const empId = profile?.id_empleado;
-      if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_SERVICIO_TECNICO === '1') {
-        const coinciden = empId != null ? rows.filter((r) => r.empleado_id === empId) : [];
-        console.info('[servicio-tecnico] new-service: fetchTecnicos', {
-          id_empleado_perfil: empId ?? null,
-          totalFilasDirectorio: rows.length,
-          filasMismoEmpleado: coinciden.length,
-        });
-      }
-
-      if (profile?.id_empleado == null) {
-        setTecnicoLoadError(
-          'Su perfil no tiene un empleado vinculado. Contacte al administrador para asociar su usuario a un empleado.'
-        );
+      const resolved = await resolveTechnicianForProfile(authProfile);
+      if ('message' in resolved) {
+        setTecnicoLoadError(resolved.message);
         setLoadingTecnicos(false);
-        return;
-      }
-
-      const currentEmp = mergeDirectorioRowsForEmpleado(rows, profile.id_empleado);
-      if (!currentEmp) {
-        setTecnicoLoadError(
-          'No figura en el directorio de empleados o no tiene permisos de acceso. Verifique su registro en el sistema.'
-        );
-        setLoadingTecnicos(false);
-        return;
-      }
-
-      const validado = await resolveEmpleadoParaServicioTecnico(
-        supabase,
-        profile.id_empleado,
-        currentEmp
-      );
-      if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_SERVICIO_TECNICO === '1') {
-        console.info('[servicio-tecnico] new-service: resultado resolve', {
-          ok: validado.ok,
-          ...(validado.ok
-            ? {
-                tecnicoId: validado.tecnicoId,
-                centroServicioId: validado.centroServicioId,
-                distribuidoraId: validado.distribuidoraId,
-              }
-            : { mensaje: validado.message }),
-        });
-      }
-      if (!validado.ok) {
-        setTecnicoLoadError(validado.message);
-        setLoadingTecnicos(false);
+        setLoadingPrinter(false);
         return;
       }
 
       const row: TecnicoCentroRow = {
-        tecnico_id: validado.tecnicoId,
-        centro_servicio_id: validado.centroServicioId,
-        distribuidora_id: validado.distribuidoraId,
-        empleado_id: currentEmp.empleado_id,
-        empleado_nombre: currentEmp.empleado_nombre || '',
-        empleado_cedula: currentEmp.empleado_cedula,
-        empresa_razon_social: currentEmp.empresa_razon_social,
-        empresa_rif: currentEmp.empresa_rif,
-        sucursal_ciudad: currentEmp.sucursal_ciudad,
-        sucursal_estado: currentEmp.sucursal_estado,
+        tecnico_id: resolved.technicianId,
+        centro_servicio_id: resolved.serviceCenterId,
+        distribuidora_id: resolved.distributorId,
+        empleado_id: resolved.employeeId,
+        empleado_nombre: resolved.employeeName,
+        empleado_cedula: resolved.employeeNationalId,
+        empresa_razon_social: resolved.companyName,
+        empresa_rif: resolved.companyRif,
+        sucursal_ciudad: resolved.branchCity,
+        sucursal_estado: resolved.branchState,
       };
 
       setTecnicoInfo(row);
       setIdTecnico(String(row.tecnico_id));
       setIdCentroServicio(
-        row.centro_servicio_id != null ? String(row.centro_servicio_id) : ''
+        row.centro_servicio_id != null ? String(row.centro_servicio_id) : '',
       );
       setIdDistribuidora(
-        row.distribuidora_id != null ? String(row.distribuidora_id) : ''
+        row.distribuidora_id != null ? String(row.distribuidora_id) : '',
       );
       setTecnicosData([row]);
-
       setLoadingTecnicos(false);
-    };
 
-    const fetchPrinter = async () => {
       setLoadingPrinter(true);
-      const row = await printerService.getPrinterById(id, {
-        restrictToDistribuidoraId:
-          profile?.rol_usuario === 'tecnico' ? tecnicoDistribuidoraId ?? null : undefined,
-      });
-      setPrinter(row ?? null);
+      const printerRow = await printerService.getPrinterById(id);
+      setPrinter(printerRow ?? null);
       setLoadingPrinter(false);
     };
 
-    fetchTecnicos();
-    fetchPrinter();
-  }, [id, authLoading, profile?.rol_usuario, tecnicoDistribuidoraId, profile?.id_empleado]);
+    load();
+  }, [id, authLoading, authProfile]);
 
   // Auto-fill centro / distribuidora cuando cambia el técnico seleccionado
   useEffect(() => {
@@ -257,17 +200,15 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       if (!sealReplaced) return;
 
       setLoadingPrecintos(true);
-      const { data, error } = await withTimeout(
-        supabase
-          .from('precintos')
-          .select('*')
-          .eq('estatus', 'disponible')
-          .order('serial', { ascending: true }),
-        10000
-      );
-
-      if (!error && data) {
-        setPrecintosDisponibles(data);
+      try {
+        const seals = await fetchSeals();
+        setPrecintosDisponibles(
+          seals
+            .filter((s) => s.status === 'disponible')
+            .sort((a, b) => a.serial.localeCompare(b.serial)),
+        );
+      } catch {
+        setPrecintosDisponibles([]);
       }
       setLoadingPrecintos(false);
     };
@@ -281,12 +222,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
     setError(null);
 
     try {
-      const { data: { user } } = await withTimeout(supabase.auth.getUser(), 8000);
-      if (!user) {
-        throw new Error('No se encontró una sesión activa.');
-      }
-
-      // Clean ID for database
       const cleanId = Number(id.replace('mock-p-', '').replace('fp-', ''));
 
       // Strict Validation for NOT NULL fields
@@ -329,63 +264,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       }
       if (rawDist !== '' && !distOk) {
         throw new Error('Identificador de distribuidora inválido.');
-      }
-
-      if (profile?.id_empleado == null) {
-        throw new Error(
-          'Su sesión no tiene un empleado vinculado. Vuelva a iniciar sesión o contacte al administrador.'
-        );
-      }
-
-      const dirOk = await withTimeout(
-        resolveEmpleadoParaServicioTecnico(supabase, profile.id_empleado),
-        20000
-      );
-      if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_SERVICIO_TECNICO === '1') {
-        console.info('[servicio-tecnico] handleSubmit: revalidación', {
-          ok: dirOk.ok,
-          id_empleado: profile.id_empleado,
-          ...(dirOk.ok
-            ? {
-                tecnicoId: dirOk.tecnicoId,
-                centroServicioId: dirOk.centroServicioId,
-                distribuidoraId: dirOk.distribuidoraId,
-              }
-            : { mensaje: dirOk.message }),
-          estadoFormTecnico: numTecnico,
-          estadoFormCentro: numCentro,
-          estadoFormDistribuidora: numDist,
-        });
-      }
-      if (!dirOk.ok) {
-        throw new Error(dirOk.message);
-      }
-      if (numTecnico !== dirOk.tecnicoId) {
-        throw new Error(
-          'El técnico no coincide con el directorio. Actualice la página e intente de nuevo.'
-        );
-      }
-      if (dirOk.centroServicioId != null) {
-        if (numCentro !== dirOk.centroServicioId) {
-          throw new Error(
-            'El centro de servicio no coincide con el directorio. Actualice la página e intente de nuevo.'
-          );
-        }
-      } else if (numCentro != null && numCentro > 0) {
-        throw new Error(
-          'No debe indicarse centro de servicio para este usuario. Actualice la página e intente de nuevo.'
-        );
-      }
-      if (dirOk.distribuidoraId != null) {
-        if (numDist !== dirOk.distribuidoraId) {
-          throw new Error(
-            'La distribuidora no coincide con el directorio. Actualice la página e intente de nuevo.'
-          );
-        }
-      } else if (numDist != null && numDist > 0) {
-        throw new Error(
-          'No debe indicarse distribuidora para este usuario. Actualice la página e intente de nuevo.'
-        );
       }
 
       const solicitud = parseLocalDateOnly(fechaSolicitud, 'Fecha de solicitud');
@@ -461,166 +339,43 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
         ? Number(idPrecintoInstalado)
         : null;
 
-      // Solo se puede instalar un precinto que siga en estatus «disponible» (evita datos obsoletos / condiciones de carrera)
       if (nuevoPrecintoId != null) {
         if (idPrecintoActual != null && nuevoPrecintoId === idPrecintoActual) {
           throw new Error('El precinto a instalar no puede ser el mismo que el precinto actual en la impresora.');
         }
-        const { data: precintoOk, error: precintoCheckErr } = await withTimeout(
-          supabase
-            .from('precintos')
-            .select('id')
-            .eq('id', nuevoPrecintoId)
-            .eq('estatus', 'disponible')
-            .maybeSingle(),
-          10000
-        );
-        if (precintoCheckErr) throw precintoCheckErr;
-        if (!precintoOk) {
+        const disponible = precintosDisponibles.some((p) => Number(p.id) === nuevoPrecintoId);
+        if (!disponible) {
           throw new Error(
-            'El precinto seleccionado ya no está disponible. Actualice la página y elija otro de la lista.'
+            'El precinto seleccionado ya no está disponible. Actualice la página y elija otro de la lista.',
           );
         }
       }
 
-      const insertPayload: Record<string, unknown> = {
-            id_impresora: cleanId,
-            id_tecnico: numTecnico,
-            precinto_violentado: precintoViolentado,
-            observaciones: observaciones || null,
-            fecha_inicio: toIsoUtc(start),
-            fecha_fin: toIsoUtc(end),
-            url_fotos: [], 
-            reporte_z_inicial: numZInicial,
-            reporte_z_final: numZFinal,
-            costo: numCosto,
-            falla_reportada: fallaReportada,
-            fecha_solicitud: fechaSolicitud.trim(),
-            fecha_z_inicial: toIsoUtc(zStart),
-            fecha_z_final: toIsoUtc(zEnd),
-            // Se registra el precinto actual siempre que exista uno en la impresora
-            id_precinto_retirado: idPrecintoActual,
-            // El nuevo precinto solo si se reemplazó
-            id_precinto_instalado: nuevoPrecintoId,
-      };
-      if (centroOk) insertPayload.id_centro_servicio = numCentro;
-      if (distOk) insertPayload.id_distribuidora = numDist;
-
-      const { data: insertedService, error: insertError } = await withTimeout(
-        supabase
-          .from('servicios_tecnicos')
-          .insert([insertPayload])
-          .select('id')
-          .maybeSingle(),
-        20000 // Higher timeout for inserts
-      );
-
-      if (insertError) {
-        const em = String((insertError as { message?: string }).message ?? '');
-        if (
-          em.includes('id_distribuidora') &&
-          (em.includes('schema cache') || em.includes('Could not find'))
-        ) {
-          throw new Error(
-            'En Supabase falta la columna id_distribuidora en servicios_tecnicos o el API no ha refrescado el esquema. ' +
-              'Ejecute el script docs/sql/servicios_tecnicos_distribuidora.sql en el SQL Editor y luego use ' +
-              'Project Settings → Data API → Reload schema.'
-          );
-        }
-        throw insertError;
-      }
-      // `maybeSingle`: si RLS permite INSERT pero no devolver la fila, no falla con PGRST116
-      const servicioInsertadoId = insertedService?.id as number | undefined;
-
-      const revertirPrecintoRetirado = async () => {
-        if (idPrecintoActual == null) return;
-        await withTimeout(
-          supabase
-            .from('precintos')
-            .update({
-              estatus: 'en_impresora' as const,
-              id_impresora: cleanId,
-              fecha_retiro: null,
-            })
-            .eq('id', idPrecintoActual),
-          10000
-        );
-      };
-
-      const eliminarServicioInsertado = async () => {
-        if (servicioInsertadoId == null) return;
-        await withTimeout(
-          supabase.from('servicios_tecnicos').delete().eq('id', servicioInsertadoId),
-          10000
-        );
-      };
-
-      // --- Actualizar estatus de precintos ---
-      const ahora = toIsoUtc(end);
-
-      if (sealReplaced && nuevoPrecintoId != null) {
-        let precintoRetiradoMarcado = false;
-
-        // Precinto viejo: sustituido (desvinculado de la impresora)
-        if (idPrecintoActual != null) {
-          const { error: retiroErr } = await withTimeout(
-            supabase
-              .from('precintos')
-              .update({
-                estatus: 'sustituido' as const,
-                fecha_retiro: ahora,
-                id_impresora: null,
-              })
-              .eq('id', idPrecintoActual),
-            10000
-          );
-          if (retiroErr) {
-            await eliminarServicioInsertado();
-            throw retiroErr;
-          }
-          precintoRetiradoMarcado = true;
-        }
-
-        // Precinto nuevo: solo si sigue «disponible» (actualización atómica en base de datos)
-        const { data: instalados, error: instalErr } = await withTimeout(
-          supabase
-            .from('precintos')
-            .update({
-              estatus: 'en_impresora' as const,
-              id_impresora: cleanId,
-              fecha_instalacion: ahora,
-            })
-            .eq('id', nuevoPrecintoId)
-            .eq('estatus', 'disponible')
-            .select('id'),
-          10000
-        );
-        if (instalErr) {
-          if (precintoRetiradoMarcado) await revertirPrecintoRetirado();
-          await eliminarServicioInsertado();
-          throw instalErr;
-        }
-        if (!instalados?.length) {
-          if (precintoRetiradoMarcado) await revertirPrecintoRetirado();
-          await eliminarServicioInsertado();
-          throw new Error(
-            'El precinto seleccionado ya no está disponible (otro usuario pudo asignarlo). Actualice la página y elija otro.'
-          );
-        }
-      }
-
-      setSuccessRecordId(
-        servicioInsertadoId != null ? String(servicioInsertadoId) : null
-      );
-      setSuccessOpen(true);
-    } catch (err: any) {
-      console.error('Error insertando servicio técnico:', {
-        message: err.message,
-        details: err.details,
-        hint: err.hint,
-        code: err.code
+      const created = await createTechnicalService({
+        printerId: cleanId,
+        technicianId: numTecnico,
+        serviceCenterId: centroOk ? numCentro : null,
+        distributorId: distOk ? numDist : null,
+        sealTampered: precintoViolentado,
+        notes: observaciones || null,
+        startAt: toIsoUtc(start),
+        endAt: toIsoUtc(end),
+        photoUrls: [],
+        installedSealId: nuevoPrecintoId,
+        removedSealId: idPrecintoActual,
+        initialZReport: numZInicial,
+        finalZReport: numZFinal,
+        cost: numCosto,
+        reportedFailure: fallaReportada,
+        requestDate: fechaSolicitud.trim(),
+        initialZDate: toIsoUtc(zStart),
+        finalZDate: toIsoUtc(zEnd),
       });
-      setError(err.message || 'Error al guardar el servicio técnico.');
+
+      setSuccessRecordId(String(created.id));
+      setSuccessOpen(true);
+    } catch (err: unknown) {
+      setError(messageFromUnknownError(err));
     } finally {
       // Siempre: en éxito antes no se llamaba y la UI quedaba en «Guardando…» indefinidamente
       setLoading(false);

@@ -1,0 +1,26 @@
+export type TechnicalServiceRequest = {
+  printerId: number;
+  technicianId: number;
+  serviceCenterId?: number | null;
+  sealTampered: boolean;
+  notes?: string | null;
+  startAt: string;
+  endAt: string;
+  photoUrls: string[];
+  installedSealId?: number | null;
+  removedSealId?: number | null;
+  initialZReport: number;
+  finalZReport: number;
+  cost: number;
+  reportedFailure: string;
+  requestDate: string;
+  initialZDate: string;
+  finalZDate: string;
+  distributorId?: number | null;
+};
+
+export type TechnicalServiceResponse = {
+  id: number;
+  printerId: number;
+  technicianId: number;
+};
