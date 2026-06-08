@@ -12,9 +12,9 @@ import {
   type UserProfile as AuthUserProfile,
 } from '@/lib/auth-profile';
 import { profileToPerfilApp, type PerfilApp } from '@/lib/roles';
+import { AdminAppLink } from '@/components/admin-app-link';
 
 const inter = Inter({ subsets: ['latin'] });
-const ADMIN_APP_URL = 'https://aeg-admin.tech';
 
 export type UserProfile = PerfilApp;
 
@@ -159,25 +159,14 @@ export default function RootLayout({
                 <Link href="/" className="flex items-center gap-3 group">
                   <img src="/aeg-logo.png" alt="AEG Logo" className="h-10 w-auto logo-theme-aware" />
                 </Link>
-                {sessionUser && (
-                  <>
-                    <a
-                      href={ADMIN_APP_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-2 py-1 md:px-2.5 rounded-md text-[11px] md:text-sm font-medium text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/70 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
-                    >
-                      AEG Admin
-                    </a>
-                    {showManualLink && (
-                      <Link
-                        href="/manual"
-                        className="inline-flex items-center px-2 py-1 md:px-2.5 rounded-md text-[11px] md:text-sm font-medium text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/70 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
-                      >
-                        Manual
-                      </Link>
-                    )}
-                  </>
+                <AdminAppLink />
+                {sessionUser && showManualLink && (
+                  <Link
+                    href="/manual"
+                    className="inline-flex items-center px-2 py-1 md:px-2.5 rounded-md text-[11px] md:text-sm font-medium text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/70 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
+                  >
+                    Manual
+                  </Link>
                 )}
               </div>
 

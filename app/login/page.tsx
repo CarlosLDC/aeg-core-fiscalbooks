@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { login, getLoginErrorMessage } from '@/lib/auth';
 import { getSafeRedirectPath } from '@/lib/safe-redirect';
 import { LockIcon, EyeIcon, EyeOffIcon } from '@/components/icons';
+import { AdminAppLink } from '@/components/admin-app-link';
 
 function LoginForm() {
   const [username, setUsername] = useState('');
@@ -137,7 +138,9 @@ function LoginForm() {
           </button>
         </form>
 
-        <p className="mt-10 text-center text-slate-400 dark:text-slate-500 text-sm transition-colors font-light">
+        <AdminAppLink variant="panel" />
+
+        <p className="mt-8 text-center text-slate-400 dark:text-slate-500 text-sm transition-colors font-light">
           Contacte a un administrador de AEG para conseguir acceso
         </p>
       </div>
