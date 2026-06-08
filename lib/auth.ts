@@ -52,7 +52,11 @@ export function getSession(): (UserProfile & { token: string }) | null {
   }
 
   const profile = getProfileFromStorage(username, token);
-  if (!profile) return null;
+  if (!profile) {
+    clearStoredToken();
+    clearUserProfile();
+    return null;
+  }
 
   return { token, ...profile };
 }
