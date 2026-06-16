@@ -144,8 +144,8 @@ export async function resolveAndStoreUserProfile(
   let role = getRoleFromToken(token);
   let branchId = getBranchIdFromToken(token);
   let distributorId = getDistributorIdFromToken(token);
-  let name = nameFromMe(me);
-  let email = emailFromMe(me, username);
+  const name = nameFromMe(me);
+  const email = emailFromMe(me, username);
   let employeeId = employeeIdFromMe(me) ?? getEmployeeIdFromToken(token);
 
   if (me) {
