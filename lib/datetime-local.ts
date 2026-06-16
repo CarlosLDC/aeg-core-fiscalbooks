@@ -58,8 +58,8 @@ export function parseLocalDateTime(dateStr: string, timeStr: string, fieldLabel:
   const y = Number(dm[1]);
   const mo = Number(dm[2]);
   const d = Number(dm[3]);
-  let h = Number(tm[1]);
-  let min = Number(tm[2]);
+  const h = Number(tm[1]);
+  const min = Number(tm[2]);
   const sec = tm[3] !== undefined && tm[3] !== '' ? Number(tm[3]) : 0;
 
   if (![y, mo, d, h, min, sec].every((n) => Number.isFinite(n))) {

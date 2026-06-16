@@ -47,7 +47,10 @@ export default function RootLayout({
   } | null>(null);
   const [authProfile, setAuthProfile] = useState<AuthUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window === 'undefined') return 'light';
+    return (localStorage.getItem('theme') as 'light' | 'dark' | null) || 'light';
+  });
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [tecnicoDistribuidoraId, setTecnicoDistribuidoraId] = useState<number | null>(null);
 
@@ -57,18 +60,14 @@ export default function RootLayout({
   const showManualLink = !!profile?.rol_usuario;
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    const initialTheme = savedTheme || 'light';
-    setTheme(initialTheme);
-
     const applyTheme = (t: 'light' | 'dark') => {
       const root = document.documentElement;
       if (t === 'dark') root.classList.add('dark');
       else root.classList.remove('dark');
     };
 
-    applyTheme(initialTheme);
-  }, []);
+    applyTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
     document.title = 'Libros Fiscales - AEG';

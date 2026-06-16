@@ -7,7 +7,7 @@ export async function withTimeout<T>(
   timeoutMs: number = 15000,
   errorMessage: string = 'La conexión es lenta o se ha perdido. Reintente en unos momentos.'
 ): Promise<T> {
-  let timeoutId: any;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   const timeoutPromise = new Promise<never>((_, reject) => {
     timeoutId = setTimeout(() => {
@@ -20,6 +20,6 @@ export async function withTimeout<T>(
     const result = await Promise.race([Promise.resolve(promise), timeoutPromise]);
     return result as T;
   } finally {
-    clearTimeout(timeoutId);
+    if (timeoutId) clearTimeout(timeoutId);
   }
 }

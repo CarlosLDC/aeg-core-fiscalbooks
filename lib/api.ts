@@ -1,5 +1,6 @@
 import { readErrorMessageFromResponse } from '@/lib/api-error-message';
-import { resolveApiBaseUrl } from '@/lib/api-config';
+import { unwrapApiPayload } from '@/lib/api-contract';
+import { buildApiPath, resolveApiBaseUrl } from '@/lib/api-config';
 import { getStoredToken } from '@/lib/auth-storage';
 import { redirectToLoginAfterExpired } from '@/lib/session-expired';
 import { ApiError } from '@/types/auth';
@@ -21,7 +22,7 @@ export async function apiFetch<T>(
   options: ApiFetchOptions = {},
 ): Promise<T> {
   const { auth = true, headers, ...init } = options;
-  const url = `${getApiBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`;
+  const url = `${getApiBaseUrl()}${buildApiPath(path)}`;
 
   const requestHeaders = new Headers(headers);
   if (!requestHeaders.has('Content-Type') && init.body) {
@@ -58,7 +59,8 @@ export async function apiFetch<T>(
 
   const contentType = response.headers.get('content-type');
   if (contentType?.includes('application/json')) {
-    return response.json() as Promise<T>;
+    const data = await response.json();
+    return unwrapApiPayload<T>(data);
   }
 
   return undefined as T;
