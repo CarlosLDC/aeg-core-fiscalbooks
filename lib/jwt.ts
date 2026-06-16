@@ -15,12 +15,21 @@ export function parseJwtPayload(token: string): JwtPayload | null {
 
 export function isTokenExpired(token: string): boolean {
   const payload = parseJwtPayload(token);
-  if (!payload?.exp) return true;
+  if (!payload?.exp) return false;
   return payload.exp * 1000 <= Date.now();
 }
 
 export function getUsernameFromToken(token: string): string | null {
-  return parseJwtPayload(token)?.sub ?? null;
+  const payload = parseJwtPayload(token);
+  return (
+    payload?.sub ??
+    payload?.username ??
+    payload?.preferred_username ??
+    payload?.email ??
+    payload?.userName ??
+    payload?.user_name ??
+    null
+  );
 }
 
 function parseNumericClaim(value: unknown): number | null {
@@ -34,13 +43,29 @@ function parseNumericClaim(value: unknown): number | null {
 
 function normalizeRoleClaim(value: unknown): Role | null {
   if (typeof value !== 'string') return null;
-  const normalized = value.replace(/^ROLE_/, '');
-  return ROLES.includes(normalized as Role) ? (normalized as Role) : null;
+  const normalized = value
+    .trim()
+    .toUpperCase()
+    .replace(/^ROLE_/, '')
+    .replace(/-/g, '_');
+  const aliases: Record<string, Role> = {
+    ADMINISTRATOR: 'ADMIN',
+    TECNICO: 'TECHNICIAN',
+    TECH: 'TECHNICIAN',
+    DISTRIBUIDORA: 'DISTRIBUTOR',
+    DISTRIBUTOR_USER: 'DISTRIBUTOR',
+    CENTRO_SERVICIO: 'SERVICE_CENTER',
+    SERVICECENTER: 'SERVICE_CENTER',
+    INSPECTOR: 'SENIAT',
+  };
+  const role = aliases[normalized] ?? normalized;
+  return ROLES.includes(role as Role) ? (role as Role) : null;
 }
 
 function rolesFromClaimList(value: unknown): Role | null {
-  if (!Array.isArray(value)) return null;
-  for (const entry of value) {
+  const entries =
+    typeof value === 'string' ? value.split(/\s+/) : Array.isArray(value) ? value : [];
+  for (const entry of entries) {
     const role = normalizeRoleClaim(String(entry));
     if (role) return role;
   }
@@ -81,5 +106,14 @@ export function getDistributorIdFromToken(token: string): number | null {
   return (
     parseNumericClaim(payload.distributorId) ??
     parseNumericClaim(payload.distributor_id)
+  );
+}
+
+export function getEmployeeIdFromToken(token: string): number | null {
+  const payload = parseJwtPayload(token) as Record<string, unknown> | null;
+  if (!payload) return null;
+  return (
+    parseNumericClaim(payload.employeeId) ??
+    parseNumericClaim(payload.employee_id)
   );
 }

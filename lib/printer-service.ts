@@ -2,6 +2,7 @@ import {
   fetchFiscalBookByPrinterId,
   searchFiscalBooks,
 } from '@/lib/fiscal-books-api';
+import { toBooleanOrNull, toNumber, toStringOrNull } from '@/lib/api-contract';
 import {
   AnnualInspection,
   FiscalPrinter,
@@ -24,24 +25,53 @@ function cleanPrinterId(id: string): number {
   return Number(raw);
 }
 
+function pick(source: unknown, ...keys: string[]): unknown {
+  if (!source || typeof source !== 'object') return undefined;
+  const record = source as Record<string, unknown>;
+  for (const key of keys) {
+    if (record[key] !== undefined) return record[key];
+  }
+  return undefined;
+}
+
+function pickString(source: unknown, ...keys: string[]): string | null {
+  return toStringOrNull(pick(source, ...keys));
+}
+
+function pickNumber(source: unknown, ...keys: string[]): number | null {
+  return toNumber(pick(source, ...keys));
+}
+
+function pickBoolean(source: unknown, ...keys: string[]): boolean | null {
+  return toBooleanOrNull(pick(source, ...keys));
+}
+
 function mapSummaryToFiscalPrinter(
   item: FiscalBookSummaryResponse,
 ): FiscalPrinter {
+  const id = pickNumber(item, 'id', 'printerId', 'printer_id') ?? item.id;
+  const distributorId =
+    pickNumber(item, 'distributorId', 'distributor_id', 'distribuidoraId') ??
+    item.distributorId;
   return {
-    id: String(item.id),
+    id: String(id),
     id_modelo_impresora: '',
     id_sucursal: null,
-    id_distribuidor: item.distributorId != null ? String(item.distributorId) : null,
+    id_distribuidor: distributorId != null ? String(distributorId) : null,
     id_compra: null,
     id_software: null,
     id_firmware: null,
-    serial_fiscal: item.fiscalSerial,
+    serial_fiscal:
+      pickString(item, 'fiscalSerial', 'fiscal_serial', 'serialFiscal') ??
+      item.fiscalSerial,
     estatus: (item.status as FiscalPrinter['estatus']) ?? 'asignada',
     precio_venta_final: null,
     se_pago: null,
     tipo_dispositivo: 'interno',
-    businessName: item.businessName,
-    rif: item.rif,
+    businessName:
+      pickString(item, 'businessName', 'business_name', 'razonSocial', 'razon_social') ??
+      item.businessName,
+    rif: pickString(item, 'rif', 'taxId', 'tax_id') ?? item.rif,
     taxpayerType: null,
     address: null,
     precintos: [],
@@ -53,36 +83,65 @@ function mapSummaryToFiscalPrinter(
 function mapDetailToFiscalPrinter(detail: FiscalBookDetailResponse): FiscalPrinter {
   const branch = detail.branch;
   const company = branch?.company ?? null;
+  const distributorId =
+    pickNumber(detail, 'distributorId', 'distributor_id', 'distribuidoraId') ??
+    detail.distributorId;
+  const branchId = pickNumber(branch, 'id', 'branchId', 'branch_id') ?? branch?.id;
+  const modelId = pickNumber(detail, 'modelId', 'model_id') ?? detail.modelId;
+  const softwareId = pickNumber(detail, 'softwareId', 'software_id') ?? detail.softwareId;
 
-  const technicalReviews: TechnicalReview[] = (detail.technicalServices ?? []).map(
-    mapTechnicalService,
-  );
-  const annualInspections: AnnualInspection[] = (detail.annualInspections ?? []).map(
-    mapAnnualInspection,
-  );
+  const technicalServices =
+    (pick(detail, 'technicalServices', 'technical_services', 'services') as
+      | FiscalBookTechnicalServiceResponse[]
+      | undefined) ?? detail.technicalServices;
+  const inspections =
+    (pick(detail, 'annualInspections', 'annual_inspections', 'inspections') as
+      | FiscalBookAnnualInspectionResponse[]
+      | undefined) ?? detail.annualInspections;
+
+  const technicalReviews: TechnicalReview[] = (technicalServices ?? []).map(mapTechnicalService);
+  const annualInspections: AnnualInspection[] = (inspections ?? []).map(mapAnnualInspection);
 
   return {
     id: String(detail.id),
-    serial_fiscal: detail.fiscalSerial,
-    estatus: (detail.status as FiscalPrinter['estatus']) ?? 'asignada',
-    tipo_dispositivo: (detail.deviceType as FiscalPrinter['tipo_dispositivo']) ?? 'interno',
-    precio_venta_final: detail.finalSalePrice != null ? Number(detail.finalSalePrice) : null,
-    se_pago: detail.paid ?? null,
+    serial_fiscal:
+      pickString(detail, 'fiscalSerial', 'fiscal_serial', 'serialFiscal') ??
+      detail.fiscalSerial,
+    estatus:
+      (pickString(detail, 'status', 'estatus') as FiscalPrinter['estatus']) ??
+      'asignada',
+    tipo_dispositivo:
+      (pickString(detail, 'deviceType', 'device_type', 'tipoDispositivo') as
+        | FiscalPrinter['tipo_dispositivo']
+        | null) ?? 'interno',
+    precio_venta_final:
+      pickNumber(detail, 'finalSalePrice', 'final_sale_price', 'precioVentaFinal'),
+    se_pago: pickBoolean(detail, 'paid', 'sePago', 'se_pago'),
     registro_fiscal: null,
-    version_firmware: detail.versionFirmware ?? null,
-    created_at: detail.createdAt ?? null,
-    fecha_instalacion: detail.installationDate ?? null,
-    direccion_mac: detail.macAddress ?? null,
-    id_modelo_impresora: detail.modelId != null ? String(detail.modelId) : '',
-    id_sucursal: branch?.id != null ? String(branch.id) : null,
-    id_distribuidor: detail.distributorId != null ? String(detail.distributorId) : null,
+    version_firmware:
+      pickString(detail, 'versionFirmware', 'version_firmware', 'firmwareVersion') ??
+      detail.versionFirmware,
+    created_at: pickString(detail, 'createdAt', 'created_at') ?? detail.createdAt,
+    fecha_instalacion:
+      pickString(detail, 'installationDate', 'installation_date') ??
+      detail.installationDate,
+    direccion_mac: pickString(detail, 'macAddress', 'mac_address') ?? detail.macAddress,
+    id_modelo_impresora: modelId != null ? String(modelId) : '',
+    id_sucursal: branchId != null ? String(branchId) : null,
+    id_distribuidor: distributorId != null ? String(distributorId) : null,
     id_compra: null,
-    id_software: detail.softwareId != null ? String(detail.softwareId) : null,
+    id_software: softwareId != null ? String(softwareId) : null,
     id_firmware: null,
-    businessName: detail.businessName ?? company?.businessName ?? null,
-    rif: detail.rif ?? company?.rif ?? null,
-    taxpayerType: detail.taxpayerType ?? company?.contributorType ?? null,
-    address: detail.address ?? null,
+    businessName:
+      pickString(detail, 'businessName', 'business_name', 'razonSocial', 'razon_social') ??
+      company?.businessName ??
+      null,
+    rif: pickString(detail, 'rif', 'taxId', 'tax_id') ?? company?.rif ?? null,
+    taxpayerType:
+      pickString(detail, 'taxpayerType', 'taxpayer_type', 'contributorType') ??
+      company?.contributorType ??
+      null,
+    address: pickString(detail, 'address', 'direccion') ?? detail.address ?? null,
     sucursal: branch
       ? {
           id: branch.id,
@@ -169,58 +228,100 @@ function mapDetailToFiscalPrinter(detail: FiscalBookDetailResponse): FiscalPrint
 }
 
 function mapTechnicalService(s: FiscalBookTechnicalServiceResponse): TechnicalReview {
-  const failure = s.reportedFailure ?? '';
+  const failure =
+    pickString(s, 'reportedFailure', 'reported_failure', 'description', 'descripcion') ??
+    s.reportedFailure ??
+    '';
+  const startAt = pickString(s, 'startAt', 'start_at') ?? s.startAt;
+  const endAt = pickString(s, 'endAt', 'end_at') ?? s.endAt;
+  const createdAt = pickString(s, 'createdAt', 'created_at') ?? s.createdAt;
+  const photoUrls =
+    (pick(s, 'photoUrls', 'photo_urls', 'urlFotos') as string[] | undefined) ??
+    s.photoUrls ??
+    [];
   return {
     id: String(s.id),
-    createdAt: s.createdAt ?? null,
-    fechaSolicitud: s.requestDate ?? null,
-    serviceCenter: s.serviceCenter,
-    centerRif: s.centerRif,
-    technician: s.technician,
-    technicianId: s.technicianNationalId,
+    createdAt: createdAt ?? null,
+    fechaSolicitud:
+      pickString(s, 'requestDate', 'request_date', 'fechaSolicitud') ??
+      s.requestDate ??
+      null,
+    serviceCenter:
+      pickString(s, 'serviceCenter', 'service_center', 'centroServicio') ??
+      s.serviceCenter,
+    centerRif: pickString(s, 'centerRif', 'center_rif') ?? s.centerRif,
+    technician: pickString(s, 'technician', 'tecnico') ?? s.technician,
+    technicianId:
+      pickString(s, 'technicianNationalId', 'technician_national_id', 'technicianId') ??
+      s.technicianNationalId,
     interventionType: failure.toLowerCase().includes('mantenimiento')
       ? 'Mantenimiento Preventivo'
       : 'Reparacion General',
-    startDate: s.startAt ? s.startAt.split('T')[0] : null,
-    endDate: s.endAt ? s.endAt.split('T')[0] : null,
-    date: s.startAt ? s.startAt.split('T')[0] : (s.createdAt?.split('T')[0] ?? null),
-    startTime: s.startAt ? s.startAt.split('T')[1]?.substring(0, 5) : null,
-    endTime: s.endAt ? s.endAt.split('T')[1]?.substring(0, 5) : null,
-    zReportStart: s.initialZReport != null ? String(s.initialZReport) : null,
-    zReportTimestampStart: s.initialZDate ?? null,
-    zReportEnd: s.finalZReport != null ? String(s.finalZReport) : null,
-    zReportTimestampEnd: s.finalZDate ?? null,
-    sealBroken: s.sealTampered ?? false,
-    sealReplaced: !!s.installedSealId,
-    currentSealSerial: s.removedSealSerial ?? null,
-    newSealSerial: s.installedSealSerial ?? null,
+    startDate: startAt ? startAt.split('T')[0] : null,
+    endDate: endAt ? endAt.split('T')[0] : null,
+    date: startAt ? startAt.split('T')[0] : (createdAt?.split('T')[0] ?? null),
+    startTime: startAt ? startAt.split('T')[1]?.substring(0, 5) : null,
+    endTime: endAt ? endAt.split('T')[1]?.substring(0, 5) : null,
+    zReportStart:
+      pickNumber(s, 'initialZReport', 'initial_z_report') != null
+        ? String(pickNumber(s, 'initialZReport', 'initial_z_report'))
+        : null,
+    zReportTimestampStart:
+      pickString(s, 'initialZDate', 'initial_z_date') ?? s.initialZDate ?? null,
+    zReportEnd:
+      pickNumber(s, 'finalZReport', 'final_z_report') != null
+        ? String(pickNumber(s, 'finalZReport', 'final_z_report'))
+        : null,
+    zReportTimestampEnd:
+      pickString(s, 'finalZDate', 'final_z_date') ?? s.finalZDate ?? null,
+    sealBroken: pickBoolean(s, 'sealTampered', 'seal_tampered') ?? false,
+    sealReplaced: pickNumber(s, 'installedSealId', 'installed_seal_id') != null,
+    currentSealSerial:
+      pickString(s, 'removedSealSerial', 'removed_seal_serial') ??
+      s.removedSealSerial ??
+      null,
+    newSealSerial:
+      pickString(s, 'installedSealSerial', 'installed_seal_serial') ??
+      s.installedSealSerial ??
+      null,
     description: failure,
-    observaciones: s.notes ?? null,
-    costo: s.cost != null ? Number(s.cost) : null,
-    urlFotos: s.photoUrls ?? [],
+    observaciones: pickString(s, 'notes', 'observations', 'observaciones') ?? s.notes ?? null,
+    costo: pickNumber(s, 'cost', 'costo'),
+    urlFotos: photoUrls,
     partsReplaced: [],
   };
 }
 
 function mapAnnualInspection(i: FiscalBookAnnualInspectionResponse): AnnualInspection {
-  const dateStr = i.inspectionDate ?? i.createdAt?.split('T')[0] ?? null;
-  const fechaFin = i.inspectionDate ? new Date(i.inspectionDate) : null;
+  const inspectionDate =
+    pickString(i, 'inspectionDate', 'inspection_date', 'date', 'fechaInspeccion') ??
+    i.inspectionDate;
+  const createdAt = pickString(i, 'createdAt', 'created_at') ?? i.createdAt;
+  const photoUrls =
+    (pick(i, 'photoUrls', 'photo_urls', 'urlFotos') as string[] | undefined) ??
+    i.photoUrls ??
+    [];
+  const dateStr = inspectionDate ?? createdAt?.split('T')[0] ?? null;
+  const fechaFin = inspectionDate ? new Date(inspectionDate) : null;
   const passed =
     fechaFin != null && !isNaN(fechaFin.getTime()) ? fechaFin <= new Date() : false;
 
   return {
     id: String(i.id),
-    createdAt: i.createdAt ?? null,
+    createdAt: createdAt ?? null,
     date: dateStr,
-    serviceCenter: i.serviceCenter,
-    centerRif: i.centerRif,
-    inspector: i.inspector,
-    observations: i.notes ?? null,
+    serviceCenter:
+      pickString(i, 'serviceCenter', 'service_center', 'centroServicio') ??
+      i.serviceCenter,
+    centerRif: pickString(i, 'centerRif', 'center_rif') ?? i.centerRif,
+    inspector: pickString(i, 'inspector', 'employee', 'inspectorName') ?? i.inspector,
+    observations:
+      pickString(i, 'notes', 'observations', 'observaciones') ?? i.notes ?? null,
     status: passed ? 'passed' : 'pending',
-    precintoViolentado: i.sealTampered ?? false,
+    precintoViolentado: pickBoolean(i, 'sealTampered', 'seal_tampered') ?? false,
     startTime: null,
     endTime: null,
-    urlFotos: i.photoUrls ?? [],
+    urlFotos: photoUrls,
   };
 }
 
@@ -235,7 +336,8 @@ export const printerService = {
     try {
       const detail = await fetchFiscalBookByPrinterId(printerId);
       return mapDetailToFiscalPrinter(detail);
-    } catch {
+    } catch (error) {
+      console.error('Error loading fiscal book detail:', error);
       return undefined;
     }
   },

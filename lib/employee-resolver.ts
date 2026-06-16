@@ -1,4 +1,5 @@
 import { fetchEmployees } from '@/lib/employees-api';
+import { toNumber, toStringOrNull } from '@/lib/api-contract';
 
 let cachedEmployees: Awaited<ReturnType<typeof fetchEmployees>> | null = null;
 
@@ -20,7 +21,9 @@ export async function resolveEmployeeIdByEmail(
   if (!normalized) return null;
   const employees = await loadEmployees();
   const match = employees.find(
-    (e) => e.email.trim().toLowerCase() === normalized,
+    (e) =>
+      (toStringOrNull(e.email) ?? toStringOrNull((e as { username?: unknown }).username))
+        ?.toLowerCase() === normalized,
   );
-  return match?.id ?? null;
+  return match ? toNumber(match.id) : null;
 }

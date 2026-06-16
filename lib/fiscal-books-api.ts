@@ -1,4 +1,5 @@
 import { apiFetch } from '@/lib/api';
+import { normalizePaginatedResponse, unwrapApiPayload } from '@/lib/api-contract';
 import type {
   FiscalBookDetailResponse,
   FiscalBookSearchResponse,
@@ -15,11 +16,13 @@ export async function searchFiscalBooks(
   if (query) params.set('query', query);
   params.set('page', String(page));
   params.set('pageSize', String(pageSize));
-  return apiFetch<FiscalBookSearchResponse>(`${BASE}/search?${params.toString()}`);
+  const response = await apiFetch<unknown>(`${BASE}/search?${params.toString()}`);
+  return normalizePaginatedResponse(response, page, pageSize);
 }
 
 export async function fetchFiscalBookByPrinterId(
   printerId: number,
 ): Promise<FiscalBookDetailResponse> {
-  return apiFetch<FiscalBookDetailResponse>(`${BASE}/${printerId}`);
+  const response = await apiFetch<unknown>(`${BASE}/${printerId}`);
+  return unwrapApiPayload<FiscalBookDetailResponse>(response);
 }

@@ -1,18 +1,35 @@
 import { ApiError } from '@/types/auth';
 
+function messageFromPayload(value: unknown): string | null {
+  if (typeof value === 'string' && value.trim()) return value.trim();
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+
+  const data = value as Record<string, unknown>;
+  for (const key of ['message', 'error', 'detail', 'title'] as const) {
+    const message = messageFromPayload(data[key]);
+    if (message) return message;
+  }
+
+  const errors = data.errors;
+  if (Array.isArray(errors)) {
+    for (const error of errors) {
+      const message = messageFromPayload(error);
+      if (message) return message;
+    }
+  }
+
+  return null;
+}
+
 export async function readErrorMessageFromResponse(
   response: Response,
 ): Promise<string> {
   const contentType = response.headers.get('content-type') ?? '';
   try {
     if (contentType.includes('application/json')) {
-      const data = (await response.json()) as {
-        message?: string;
-        error?: string;
-      };
+      const data = await response.json();
       return (
-        data.message ??
-        data.error ??
+        messageFromPayload(data) ??
         (response.statusText || `Error del servidor (${response.status})`)
       );
     }

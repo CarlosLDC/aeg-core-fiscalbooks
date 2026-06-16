@@ -14,19 +14,34 @@ import { getUsernameFromToken, isTokenExpired } from '@/lib/jwt';
 import type { AuthResponse, LoginRequest } from '@/types/auth';
 import { ApiError } from '@/types/auth';
 
+type RawAuthResponse = Partial<AuthResponse> & {
+  accessToken?: string;
+  access_token?: string;
+  jwt?: string;
+};
+
+function extractToken(data: RawAuthResponse): string | null {
+  return data.token ?? data.accessToken ?? data.access_token ?? data.jwt ?? null;
+}
+
 export async function login(
   credentials: LoginRequest,
   remember: boolean,
 ): Promise<AuthResponse> {
-  const data = await apiFetch<AuthResponse>('/api/auth/login', {
+  const data = await apiFetch<RawAuthResponse>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify(credentials),
     auth: false,
   });
 
-  setStoredToken(data.token, remember);
-  await resolveAndStoreUserProfile(data.token, remember);
-  return data;
+  const token = extractToken(data);
+  if (!token) {
+    throw new ApiError('El servidor no devolvió un token de sesión válido.', 500);
+  }
+
+  setStoredToken(token, remember);
+  await resolveAndStoreUserProfile(token, remember);
+  return { ...data, token };
 }
 
 export function logout() {

@@ -1,5 +1,35 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Backend `aeg-core`
+
+The app consumes the `aeg-core` REST API through the shared fetch client in
+`lib/api.ts`. Configure the backend URL with environment variables; the app no
+longer falls back to a hardcoded upstream.
+
+```bash
+# Preferred for the new backend
+AEG_CORE_API_URL=https://aeg-core.example.com
+NEXT_PUBLIC_AEG_CORE_API_URL=https://aeg-core.example.com
+
+# Backward-compatible aliases also supported
+API_UPSTREAM_URL=https://aeg-core.example.com
+NEXT_PUBLIC_API_URL=https://aeg-core.example.com
+
+# Defaults to /api. Set to an empty string only if aeg-core has no path prefix.
+NEXT_PUBLIC_API_PATH_PREFIX=/api
+
+# Optional when the browser should call this app and Next.js should proxy to aeg-core.
+NEXT_PUBLIC_USE_API_PROXY=true
+
+# Optional when the public same-origin path differs from the upstream API path.
+API_UPSTREAM_PATH_PREFIX=/api
+```
+
+In Vercel, `NEXT_PUBLIC_USE_API_PROXY` defaults to `true`, so browser requests
+go to the same origin and `next.config.ts` rewrites them to `AEG_CORE_API_URL`.
+For local development you can either enable the proxy or expose
+`NEXT_PUBLIC_AEG_CORE_API_URL` directly if CORS is allowed by `aeg-core`.
+
 ## Getting Started
 
 First, run the development server:

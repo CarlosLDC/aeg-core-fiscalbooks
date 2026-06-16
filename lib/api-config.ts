@@ -1,5 +1,4 @@
-export const DEFAULT_PRODUCTION_API_URL =
-  'https://core-xgfvw.ondigitalocean.app';
+export const DEFAULT_API_PATH_PREFIX = '/api';
 
 const PRODUCTION_HOSTS = new Set([
   'aeg-core-admin.vercel.app',
@@ -22,10 +21,43 @@ export function shouldUseSameOriginApiProxy(): boolean {
 
 function upstreamFromEnv(): string | null {
   const raw =
+    process.env.NEXT_PUBLIC_AEG_CORE_API_URL?.trim() ||
+    process.env.AEG_CORE_API_URL?.trim() ||
     process.env.NEXT_PUBLIC_API_URL?.trim() ||
     process.env.API_UPSTREAM_URL?.trim();
   if (!raw) return null;
   return raw.replace(/\/$/, '');
+}
+
+function normalizePathPrefix(raw: string | null | undefined): string {
+  const value = raw?.trim();
+  if (!value) return DEFAULT_API_PATH_PREFIX;
+  if (value === '/') return '';
+  return `/${value.replace(/^\/+|\/+$/g, '')}`;
+}
+
+export function resolveApiPathPrefix(): string {
+  return normalizePathPrefix(
+    process.env.NEXT_PUBLIC_API_PATH_PREFIX ?? process.env.API_PATH_PREFIX,
+  );
+}
+
+export function buildApiPath(path: string): string {
+  const prefix = resolveApiPathPrefix();
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+  if (prefix === DEFAULT_API_PATH_PREFIX) {
+    return normalizedPath;
+  }
+
+  if (
+    normalizedPath === DEFAULT_API_PATH_PREFIX ||
+    normalizedPath.startsWith(`${DEFAULT_API_PATH_PREFIX}/`)
+  ) {
+    return `${prefix}${normalizedPath.slice(DEFAULT_API_PATH_PREFIX.length)}` || '/';
+  }
+
+  return `${prefix}${normalizedPath}`;
 }
 
 export function resolveApiBaseUrl(): string | null {
@@ -35,10 +67,6 @@ export function resolveApiBaseUrl(): string | null {
 
   const fromEnv = upstreamFromEnv();
   if (fromEnv) return fromEnv;
-
-  if (process.env.NODE_ENV === 'production') {
-    return DEFAULT_PRODUCTION_API_URL;
-  }
 
   return null;
 }
