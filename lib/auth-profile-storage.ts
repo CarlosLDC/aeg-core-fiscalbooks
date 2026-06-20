@@ -2,10 +2,11 @@ import type { Role } from '@/types/user';
 
 export type StoredUserProfile = {
   role: Role;
+  userId: number | null;
   branchId: number | null;
   distributorId: number | null;
   name: string | null;
-  employeeId: number | null;
+  nationalId: string | null;
 };
 
 const PROFILE_KEY = 'aeg-user-profile';
@@ -29,10 +30,11 @@ export function getStoredProfile(): StoredUserProfile | null {
     if (!parsed.role) return null;
     return {
       role: parsed.role,
+      userId: parsed.userId ?? null,
       branchId: parsed.branchId ?? null,
       distributorId: parsed.distributorId ?? null,
       name: typeof parsed.name === 'string' ? parsed.name : null,
-      employeeId: parsed.employeeId ?? null,
+      nationalId: typeof parsed.nationalId === 'string' ? parsed.nationalId : null,
     };
   } catch {
     return null;

@@ -1,6 +1,6 @@
 export type AnnualInspectionRequest = {
   printerId: number;
-  employeeId: number;
+  userId: number;
   sealTampered: boolean;
   notes?: string | null;
   photoUrls: string[];
@@ -10,5 +10,5 @@ export type AnnualInspectionRequest = {
 export type AnnualInspectionResponse = {
   id: number;
   printerId: number;
-  employeeId: number;
+  userId: number;
 };

@@ -15,8 +15,8 @@ export type AuthMeResponse = {
   branch_id?: number | string | null;
   distributorId?: number | string | null;
   distributor_id?: number | string | null;
-  employeeId?: number | string | null;
-  employee_id?: number | string | null;
+  nationalId?: string | null;
+  national_id?: string | null;
   enabled?: boolean;
 };
 

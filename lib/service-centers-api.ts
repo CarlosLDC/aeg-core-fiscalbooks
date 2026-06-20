@@ -1,6 +1,6 @@
 import { apiFetch } from '@/lib/api';
 import { unwrapList } from '@/lib/api-contract';
-import type { ServiceCenterResponse } from '@/types/employee';
+import type { ServiceCenterResponse } from '@/types/service-center';
 
 const BASE = '/api/service-centers';
 

@@ -7,15 +7,14 @@ import { useUserProfile } from '@/app/layout';
 import { canRegistrarServiciosEInspecciones } from '@/lib/roles';
 import { printerService } from '@/lib/printer-service';
 import { createAnnualInspection } from '@/lib/annual-inspections-api';
-import { resolveTechnicianForProfile } from '@/lib/technician-resolver';
 import { messageFromUnknownError } from '@/lib/api-error-message';
 import { ArrowLeft } from '@/components/icons';
 import { SuccessModal } from '@/components/success-modal';
 
 type InspectorInfo = {
-  employeeId: number;
-  employeeName: string;
-  employeeNationalId: string;
+  userId: number;
+  userName: string;
+  userNationalId: string;
 };
 
 export default function NewAnnualInspection({ params }: { params: Promise<{ id: string }> }) {
@@ -25,44 +24,37 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [loadingInspector, setLoadingInspector] = useState(true);
-  const [printer, setPrinter] = useState<Awaited<ReturnType<typeof printerService.getPrinterById>>>(undefined);
   const [loadingPrinter, setLoadingPrinter] = useState(true);
+  const [printer, setPrinter] = useState<Awaited<ReturnType<typeof printerService.getPrinterById>>>(undefined);
 
   const [observaciones, setObservaciones] = useState('');
   const [precintoViolentado, setPrecintoViolentado] = useState(false);
   const [fechaInspeccion, setFechaInspeccion] = useState('');
-  const [inspectorInfo, setInspectorInfo] = useState<InspectorInfo | null>(null);
 
   const [successOpen, setSuccessOpen] = useState(false);
   const [successRecordId, setSuccessRecordId] = useState<string | null>(null);
 
+  const inspectorInfo: InspectorInfo | null =
+    authProfile?.userId != null
+      ? {
+          userId: authProfile.userId,
+          userName: authProfile.name ?? authProfile.username ?? 'Inspector',
+          userNationalId: authProfile.nationalId ?? '',
+        }
+      : null;
+
   useEffect(() => {
-    if (authLoading || !authProfile) return;
+    if (authLoading) return;
 
     const load = async () => {
-      setLoadingInspector(true);
       setLoadingPrinter(true);
-
-      const resolved = await resolveTechnicianForProfile(authProfile);
-      if ('message' in resolved) {
-        setInspectorInfo(null);
-      } else {
-        setInspectorInfo({
-          employeeId: resolved.employeeId,
-          employeeName: resolved.employeeName,
-          employeeNationalId: resolved.employeeNationalId,
-        });
-      }
-
       const row = await printerService.getPrinterById(id);
       setPrinter(row);
-      setLoadingInspector(false);
       setLoadingPrinter(false);
     };
 
     load();
-  }, [id, authLoading, authProfile]);
+  }, [id, authLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +64,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
     try {
       const cleanId = Number(id.replace('mock-p-', '').replace('fp-', ''));
 
-      if (!inspectorInfo?.employeeId || !fechaInspeccion) {
+      if (!inspectorInfo?.userId || !fechaInspeccion) {
         throw new Error('Todos los campos marcados con (*) son obligatorios según el reglamento.');
       }
 
@@ -86,7 +78,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
 
       const created = await createAnnualInspection({
         printerId: cleanId,
-        employeeId: inspectorInfo.employeeId,
+        userId: inspectorInfo.userId,
         sealTampered: precintoViolentado,
         notes: observaciones || null,
         photoUrls: [],
@@ -107,7 +99,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
       <main className="container mx-auto px-4 py-12 max-w-3xl flex-1 flex flex-col">
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-8 text-center">
           <p className="text-slate-800 dark:text-slate-200 font-semibold mb-4">
-            Solo usuarios con rol <strong>técnico</strong> pueden registrar inspecciones en el libro fiscal.
+            Solo usuarios con rol <strong>técnico</strong> o <strong>administrador</strong> pueden registrar inspecciones en el libro fiscal.
           </p>
           <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
             Volver al libro fiscal
@@ -132,6 +124,22 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 text-center">
           <p className="text-slate-800 dark:text-slate-200 font-semibold mb-4">
             No se encontró el equipo o no tiene permiso para registrar inspecciones en esta sucursal.
+          </p>
+          <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
+            Volver al libro fiscal
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (!inspectorInfo) {
+    return (
+      <main className="container mx-auto px-4 py-12 max-w-3xl flex-1 flex flex-col">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 text-center">
+          <p className="text-slate-800 dark:text-slate-200 font-semibold mb-2">No se puede registrar la inspección</p>
+          <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">
+            Su perfil no tiene un usuario vinculado. Contacte al administrador del sistema.
           </p>
           <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
             Volver al libro fiscal
@@ -184,15 +192,9 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-4">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Inspector Responsable</label>
-              {inspectorInfo ? (
-                <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500">
-                  {inspectorInfo.employeeName} (V{inspectorInfo.employeeNationalId?.replace(/-/g, '')})
-                </div>
-              ) : (
-                <div className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-slate-400 animate-pulse">
-                  {loadingInspector ? 'Cargando información del inspector...' : 'No se pudo resolver el inspector.'}
-                </div>
-              )}
+              <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500">
+                {inspectorInfo.userName} (V{inspectorInfo.userNationalId.replace(/-/g, '')})
+              </div>
             </div>
           </div>
 
@@ -247,7 +249,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
             </Link>
             <button
               type="submit"
-              disabled={loading || !inspectorInfo}
+              disabled={loading}
               className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? 'Guardando...' : 'Guardar Inspección'}

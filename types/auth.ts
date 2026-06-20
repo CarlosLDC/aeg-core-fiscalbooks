@@ -27,8 +27,10 @@ export type JwtPayload = {
   branch_id?: number;
   distributorId?: number;
   distributor_id?: number;
-  employeeId?: number;
-  employee_id?: number;
+  userId?: number;
+  user_id?: number;
+  nationalId?: string;
+  national_id?: string;
   authorities?: string[];
   roles?: string[];
   scope?: string[] | string;

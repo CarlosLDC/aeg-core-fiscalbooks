@@ -8,23 +8,24 @@ import { toNumber, toStringOrNull } from '@/lib/api-contract';
 import {
   getBranchIdFromToken,
   getDistributorIdFromToken,
-  getEmployeeIdFromToken,
+  getNationalIdFromToken,
   getRoleFromToken,
+  getUserIdFromToken,
   getUsernameFromToken,
 } from '@/lib/jwt';
 import { fetchAuthMe } from '@/lib/auth-me-api';
-import { resolveEmployeeIdByEmail } from '@/lib/employee-resolver';
 import { ApiError } from '@/types/auth';
 import { ROLES, type Role } from '@/types/user';
 
 export type UserProfile = {
+  userId: number | null;
   username: string;
   name: string | null;
   email: string;
+  nationalId: string | null;
   role: Role;
   branchId: number | null;
   distributorId: number | null;
-  employeeId: number | null;
 };
 
 function normalizeRole(value: unknown): Role | null {
@@ -38,10 +39,12 @@ function normalizeRole(value: unknown): Role | null {
     ADMINISTRATOR: 'ADMIN',
     TECNICO: 'TECHNICIAN',
     TECH: 'TECHNICIAN',
-    DISTRIBUIDORA: 'DISTRIBUTOR',
-    DISTRIBUTOR_USER: 'DISTRIBUTOR',
-    CENTRO_SERVICIO: 'SERVICE_CENTER',
-    SERVICECENTER: 'SERVICE_CENTER',
+    DISTRIBUIDORA: 'TECHNICIAN',
+    DISTRIBUTOR_USER: 'TECHNICIAN',
+    DISTRIBUTOR: 'TECHNICIAN',
+    CENTRO_SERVICIO: 'TECHNICIAN',
+    SERVICECENTER: 'TECHNICIAN',
+    SERVICE_CENTER: 'TECHNICIAN',
     INSPECTOR: 'SENIAT',
     FISCAL_ADMIN: 'ADMIN',
     FISCAL_TECHNICIAN: 'TECHNICIAN',
@@ -105,25 +108,31 @@ function distributorIdFromMe(
   return toNumber(me?.distributorId) ?? toNumber(me?.distributor_id);
 }
 
-function employeeIdFromMe(me: Awaited<ReturnType<typeof fetchAuthMe>> | null): number | null {
-  return toNumber(me?.employeeId) ?? toNumber(me?.employee_id);
+function userIdFromMe(me: Awaited<ReturnType<typeof fetchAuthMe>> | null): number | null {
+  return toNumber(me?.id);
+}
+
+function nationalIdFromMe(me: Awaited<ReturnType<typeof fetchAuthMe>> | null): string | null {
+  return toStringOrNull(me?.nationalId) ?? toStringOrNull(me?.national_id);
 }
 
 function profileFromMe(
   username: string,
   me: Awaited<ReturnType<typeof fetchAuthMe>>,
-  employeeId: number | null,
+  userId: number | null,
+  nationalId: string | null,
   fallbackRole: Role,
 ): UserProfile {
   const email = emailFromMe(me, username);
   return {
+    userId,
     username,
     name: nameFromMe(me),
     email,
+    nationalId,
     role: roleFromMe(me) ?? fallbackRole,
     branchId: branchIdFromMe(me),
     distributorId: distributorIdFromMe(me),
-    employeeId,
   };
 }
 
@@ -150,16 +159,15 @@ export async function resolveAndStoreUserProfile(
   let distributorId = getDistributorIdFromToken(token);
   const name = nameFromMe(me);
   const email = emailFromMe(me, username);
-  let employeeId = employeeIdFromMe(me) ?? getEmployeeIdFromToken(token);
+  let userId = userIdFromMe(me) ?? getUserIdFromToken(token);
+  let nationalId = nationalIdFromMe(me) ?? getNationalIdFromToken(token);
 
   if (me) {
     role = role ?? roleFromMe(me);
     branchId = branchId ?? branchIdFromMe(me);
     distributorId = distributorId ?? distributorIdFromMe(me);
-  }
-
-  if (employeeId == null) {
-    employeeId = await resolveEmployeeIdByEmail(email).catch(() => null);
+    userId = userId ?? userIdFromMe(me);
+    nationalId = nationalId ?? nationalIdFromMe(me);
   }
 
   if (!role || !ROLES.includes(role)) {
@@ -170,22 +178,24 @@ export async function resolveAndStoreUserProfile(
   }
 
   const profile: UserProfile = {
+    userId,
     username,
     name,
     email,
+    nationalId,
     role,
     branchId: branchId ?? null,
     distributorId: distributorId ?? null,
-    employeeId,
   };
 
   setStoredProfile(
     {
       role: profile.role,
+      userId: profile.userId,
       branchId: profile.branchId,
       distributorId: profile.distributorId,
       name: profile.name,
-      employeeId: profile.employeeId,
+      nationalId: profile.nationalId,
     },
     remember,
   );
@@ -201,14 +211,15 @@ export function getProfileFromStorage(
   if (!role) return null;
 
   return {
+    userId: stored?.userId ?? getUserIdFromToken(token) ?? null,
     username,
     name: stored?.name ?? null,
     email: username,
+    nationalId: stored?.nationalId ?? getNationalIdFromToken(token) ?? null,
     role,
     branchId: stored?.branchId ?? getBranchIdFromToken(token) ?? null,
     distributorId:
       stored?.distributorId ?? getDistributorIdFromToken(token) ?? null,
-    employeeId: stored?.employeeId ?? null,
   };
 }
 
@@ -221,13 +232,16 @@ export async function refreshUserProfileFromApi(
 
   try {
     const me = await fetchAuthMe();
-    const employeeId =
-      current.employeeId ??
-      employeeIdFromMe(me) ??
-      getEmployeeIdFromToken(token) ??
-      (await resolveEmployeeIdByEmail(emailFromMe(me, username)));
+    const userId =
+      userIdFromMe(me) ??
+      current.userId ??
+      getUserIdFromToken(token);
+    const nationalId =
+      nationalIdFromMe(me) ??
+      current.nationalId ??
+      getNationalIdFromToken(token);
     const profile = {
-      ...profileFromMe(username, me, employeeId, current.role),
+      ...profileFromMe(username, me, userId, nationalId, current.role),
       branchId: branchIdFromMe(me) ?? current.branchId,
       distributorId: distributorIdFromMe(me) ?? current.distributorId,
     };
@@ -235,10 +249,11 @@ export async function refreshUserProfileFromApi(
     setStoredProfile(
       {
         role: profile.role,
+        userId: profile.userId,
         branchId: profile.branchId,
         distributorId: profile.distributorId,
         name: profile.name,
-        employeeId: profile.employeeId,
+        nationalId: profile.nationalId,
       },
       isRemembered(),
     );

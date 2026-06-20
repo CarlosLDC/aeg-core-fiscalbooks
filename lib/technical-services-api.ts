@@ -22,7 +22,7 @@ export async function createTechnicalService(
     technicalServiceId?: unknown;
     technical_service_id?: unknown;
     printer_id?: unknown;
-    technician_id?: unknown;
+    user_id?: unknown;
   };
 
   return {
@@ -34,7 +34,6 @@ export async function createTechnicalService(
       toNumber(record.technical_service_id) ??
       0,
     printerId: toNumber(record.printerId) ?? toNumber(record.printer_id) ?? body.printerId,
-    technicianId:
-      toNumber(record.technicianId) ?? toNumber(record.technician_id) ?? body.technicianId,
+    userId: toNumber(record.userId) ?? toNumber(record.user_id) ?? body.userId,
   };
 }

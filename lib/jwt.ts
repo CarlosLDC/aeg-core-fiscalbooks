@@ -52,10 +52,12 @@ function normalizeRoleClaim(value: unknown): Role | null {
     ADMINISTRATOR: 'ADMIN',
     TECNICO: 'TECHNICIAN',
     TECH: 'TECHNICIAN',
-    DISTRIBUIDORA: 'DISTRIBUTOR',
-    DISTRIBUTOR_USER: 'DISTRIBUTOR',
-    CENTRO_SERVICIO: 'SERVICE_CENTER',
-    SERVICECENTER: 'SERVICE_CENTER',
+    DISTRIBUIDORA: 'TECHNICIAN',
+    DISTRIBUTOR_USER: 'TECHNICIAN',
+    DISTRIBUTOR: 'TECHNICIAN',
+    CENTRO_SERVICIO: 'TECHNICIAN',
+    SERVICECENTER: 'TECHNICIAN',
+    SERVICE_CENTER: 'TECHNICIAN',
     INSPECTOR: 'SENIAT',
     FISCAL_ADMIN: 'ADMIN',
     FISCAL_TECHNICIAN: 'TECHNICIAN',
@@ -113,11 +115,20 @@ export function getDistributorIdFromToken(token: string): number | null {
   );
 }
 
-export function getEmployeeIdFromToken(token: string): number | null {
+export function getUserIdFromToken(token: string): number | null {
   const payload = parseJwtPayload(token) as Record<string, unknown> | null;
   if (!payload) return null;
   return (
-    parseNumericClaim(payload.employeeId) ??
-    parseNumericClaim(payload.employee_id)
+    parseNumericClaim(payload.userId) ??
+    parseNumericClaim(payload.user_id)
   );
+}
+
+export function getNationalIdFromToken(token: string): string | null {
+  const payload = parseJwtPayload(token) as Record<string, unknown> | null;
+  if (!payload) return null;
+  const value = payload.nationalId ?? payload.national_id;
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
 }

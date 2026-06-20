@@ -22,7 +22,7 @@ export async function createAnnualInspection(
     annualInspectionId?: unknown;
     annual_inspection_id?: unknown;
     printer_id?: unknown;
-    employee_id?: unknown;
+    user_id?: unknown;
   };
 
   return {
@@ -34,6 +34,6 @@ export async function createAnnualInspection(
       toNumber(record.annual_inspection_id) ??
       0,
     printerId: toNumber(record.printerId) ?? toNumber(record.printer_id) ?? body.printerId,
-    employeeId: toNumber(record.employeeId) ?? toNumber(record.employee_id) ?? body.employeeId,
+    userId: toNumber(record.userId) ?? toNumber(record.user_id) ?? body.userId,
   };
 }

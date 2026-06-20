@@ -23,12 +23,11 @@ import {
 } from '@/lib/datetime-local';
 
 type TecnicoCentroRow = {
-  tecnico_id: number;
+  userId: number;
   centro_servicio_id: number | null;
   distribuidora_id: number | null;
-  empleado_id: number;
-  empleado_nombre: string;
-  empleado_cedula: string | null;
+  usuario_nombre: string;
+  usuario_cedula: string | null;
   empresa_razon_social: string | null;
   empresa_rif: string | null;
   sucursal_ciudad: string | null;
@@ -75,7 +74,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
 
   // Form state
   // Foreign Keys (simplified as number inputs for now)
-  const [idTecnico, setIdTecnico] = useState('');
   const [idCentroServicio, setIdCentroServicio] = useState('');
   /** Presente cuando el servicio se registra con `servicios_tecnicos.id_distribuidora` (sucursal distribuidora sin `centros_servicio`). */
   const [idDistribuidora, setIdDistribuidora] = useState('');
@@ -130,7 +128,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       setTecnicoLoadError(null);
       setTecnicoInfo(null);
       setTecnicosData([]);
-      setIdTecnico('');
       setIdCentroServicio('');
       setIdDistribuidora('');
 
@@ -143,12 +140,11 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       }
 
       const row: TecnicoCentroRow = {
-        tecnico_id: resolved.technicianId,
+        userId: resolved.userId,
         centro_servicio_id: resolved.serviceCenterId,
         distribuidora_id: resolved.distributorId,
-        empleado_id: resolved.employeeId,
-        empleado_nombre: resolved.employeeName,
-        empleado_cedula: resolved.employeeNationalId,
+        usuario_nombre: resolved.userName,
+        usuario_cedula: resolved.userNationalId,
         empresa_razon_social: resolved.companyName,
         empresa_rif: resolved.companyRif,
         sucursal_ciudad: resolved.branchCity,
@@ -156,7 +152,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       };
 
       setTecnicoInfo(row);
-      setIdTecnico(String(row.tecnico_id));
       setIdCentroServicio(
         row.centro_servicio_id != null ? String(row.centro_servicio_id) : '',
       );
@@ -175,25 +170,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
     load();
   }, [id, authLoading, authProfile]);
 
-  // Auto-fill centro / distribuidora cuando cambia el técnico seleccionado
-  useEffect(() => {
-    if (idTecnico && tecnicosData.length > 0) {
-      const selectedTecnico = tecnicosData.find((t) => t.tecnico_id.toString() === idTecnico);
-      if (selectedTecnico?.centro_servicio_id != null) {
-        setIdCentroServicio(String(selectedTecnico.centro_servicio_id));
-      } else {
-        setIdCentroServicio('');
-      }
-      if (selectedTecnico?.distribuidora_id != null) {
-        setIdDistribuidora(String(selectedTecnico.distribuidora_id));
-      } else {
-        setIdDistribuidora('');
-      }
-    } else {
-      setIdCentroServicio('');
-      setIdDistribuidora('');
-    }
-  }, [idTecnico, tecnicosData]);
 
   useEffect(() => {
     const fetchPrecintos = async () => {
@@ -225,7 +201,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       const cleanId = Number(id.replace('mock-p-', '').replace('fp-', ''));
 
       // Strict Validation for NOT NULL fields
-      if (!idTecnico || !fechaSolicitud || !fallaReportada ||
+      if (!tecnicoInfo?.userId || !fechaSolicitud || !fallaReportada ||
           !fechaInicioDate || !fechaInicioTime || !fechaFinDate || !fechaFinTime ||
           !fechaZInicialDate || !fechaZInicialTime || !fechaZFinalDate || !fechaZFinalTime ||
           !reporteZInicial || !reporteZFinal || !costo) {
@@ -235,7 +211,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       const numZInicial = parseInt(reporteZInicial, 10);
       const numZFinal = parseInt(reporteZFinal, 10);
       const numCosto = parseFloat(costo);
-      const numTecnico = Number(idTecnico);
+      const numUserId = tecnicoInfo.userId;
       const rawCentro = idCentroServicio.trim();
       const rawDist = idDistribuidora.trim();
       const numCentro =
@@ -249,8 +225,8 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       if (!Number.isFinite(numCosto) || numCosto < 0) {
         throw new Error('El costo debe ser un número mayor o igual a cero.');
       }
-      if (!Number.isFinite(numTecnico) || numTecnico <= 0) {
-        throw new Error('Datos de técnico inválidos.');
+      if (!Number.isFinite(numUserId) || numUserId <= 0) {
+        throw new Error('Datos de usuario inválidos.');
       }
       const centroOk = numCentro != null && Number.isFinite(numCentro) && numCentro > 0;
       const distOk = numDist != null && Number.isFinite(numDist) && numDist > 0;
@@ -353,7 +329,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
 
       const created = await createTechnicalService({
         printerId: cleanId,
-        technicianId: numTecnico,
+        userId: numUserId,
         serviceCenterId: centroOk ? numCentro : null,
         distributorId: distOk ? numDist : null,
         sealTampered: precintoViolentado,
@@ -387,7 +363,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       <main className="container mx-auto px-4 py-12 max-w-3xl flex-1 flex flex-col">
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-8 text-center">
           <p className="text-slate-800 dark:text-slate-200 font-semibold mb-4">
-            Solo usuarios con rol <strong>técnico</strong> pueden registrar servicios en el libro fiscal.
+            Solo usuarios con rol <strong>técnico</strong> o <strong>administrador</strong> pueden registrar servicios en el libro fiscal.
           </p>
           <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
             Volver al libro fiscal
@@ -486,7 +462,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Técnico Responsable</label>
               {tecnicoInfo ? (
                 <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500">
-                  {tecnicoInfo.empleado_nombre} (V{tecnicoInfo.empleado_cedula?.replace(/-/g, '')})
+                  {tecnicoInfo.usuario_nombre} (V{tecnicoInfo.usuario_cedula?.replace(/-/g, '')})
                 </div>
               ) : (
                 <div className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-slate-400">
