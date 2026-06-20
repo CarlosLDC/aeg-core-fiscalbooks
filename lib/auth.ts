@@ -28,9 +28,12 @@ export async function login(
   credentials: LoginRequest,
   remember: boolean,
 ): Promise<AuthResponse> {
-  const data = await apiFetch<RawAuthResponse>('/api/auth/fiscal-book/login', {
+  const data = await apiFetch<RawAuthResponse>('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify(credentials),
+    body: JSON.stringify({
+      ...credentials,
+      portal: credentials.portal ?? 'FISCAL_BOOK',
+    }),
     auth: false,
   });
 

@@ -47,7 +47,8 @@ export function isAdminOrSeniat(profile: PerfilApp | null | undefined): boolean 
 export function canRegistrarServiciosEInspecciones(
   profile: PerfilApp | null | undefined,
 ): boolean {
-  return isTecnico(profile);
+  const r = profile?.rol_usuario;
+  return r === 'admin' || r === 'tecnico';
 }
 
 export function canWriteFiscalBook(profile: UserProfile | null | undefined): boolean {

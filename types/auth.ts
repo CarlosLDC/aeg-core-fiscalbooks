@@ -1,6 +1,8 @@
 export type LoginRequest = {
   username: string;
   password: string;
+  /** Portal destino; el libro fiscal usa FISCAL_BOOK. */
+  portal?: 'CORE_ADMIN' | 'FISCAL_BOOK';
 };
 
 export type AuthResponse = {
