@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 
+const DEFAULT_API_UPSTREAM = 'https://core-xgfvw.ondigitalocean.app';
 const DEFAULT_API_PATH_PREFIX = '/api';
 
 function normalizePathPrefix(raw: string | null | undefined): string {
@@ -13,7 +14,8 @@ const apiUpstream =
   process.env.AEG_CORE_API_URL?.trim() ||
   process.env.NEXT_PUBLIC_AEG_CORE_API_URL?.trim() ||
   process.env.API_UPSTREAM_URL?.trim() ||
-  process.env.NEXT_PUBLIC_API_URL?.trim();
+  process.env.NEXT_PUBLIC_API_URL?.trim() ||
+  DEFAULT_API_UPSTREAM;
 
 const publicApiPathPrefix = normalizePathPrefix(
   process.env.NEXT_PUBLIC_API_PATH_PREFIX ?? process.env.API_PATH_PREFIX,
@@ -38,10 +40,6 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_API_PATH_PREFIX: publicApiPathPrefix,
   },
   async rewrites() {
-    if (!apiUpstream) {
-      return [];
-    }
-
     const upstream = apiUpstream.replace(/\/$/, '');
     return {
       fallback: [

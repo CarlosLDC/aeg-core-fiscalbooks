@@ -1,5 +1,8 @@
 export const DEFAULT_API_PATH_PREFIX = '/api';
 
+export const DEFAULT_PRODUCTION_API_URL =
+  'https://core-xgfvw.ondigitalocean.app';
+
 const PRODUCTION_HOSTS = new Set([
   'aeg-core-admin.vercel.app',
   'aeg-libros-fiscales.vercel.app',
@@ -68,6 +71,10 @@ export function resolveApiBaseUrl(): string | null {
 
   const fromEnv = upstreamFromEnv();
   if (fromEnv) return fromEnv;
+
+  if (process.env.NODE_ENV === 'production') {
+    return DEFAULT_PRODUCTION_API_URL;
+  }
 
   return null;
 }
