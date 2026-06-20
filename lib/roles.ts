@@ -47,14 +47,25 @@ export function isAdminOrSeniat(profile: PerfilApp | null | undefined): boolean 
 export function canRegistrarServiciosEInspecciones(
   profile: PerfilApp | null | undefined,
 ): boolean {
-  const r = profile?.rol_usuario;
-  return r === 'admin' || r === 'tecnico';
+  return isTecnico(profile);
+}
+
+export function rolUsuarioLabel(rol: RolUsuario | null | undefined): string | null {
+  switch (rol) {
+    case 'admin':
+      return 'Administrador';
+    case 'seniat':
+      return 'SENIAT';
+    case 'tecnico':
+      return 'Técnico';
+    default:
+      return null;
+  }
 }
 
 export function canWriteFiscalBook(profile: UserProfile | null | undefined): boolean {
   if (!profile) return false;
-  return profile.role === 'ADMIN' ||
-    profile.role === 'TECHNICIAN' ||
+  return profile.role === 'TECHNICIAN' ||
     profile.role === 'SERVICE_CENTER' ||
     profile.role === 'DISTRIBUTOR';
 }

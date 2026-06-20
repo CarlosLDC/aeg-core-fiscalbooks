@@ -11,7 +11,7 @@ import {
   refreshUserProfileFromApi,
   type UserProfile as AuthUserProfile,
 } from '@/lib/auth-profile';
-import { profileToPerfilApp, type PerfilApp } from '@/lib/roles';
+import { profileToPerfilApp, rolUsuarioLabel, type PerfilApp } from '@/lib/roles';
 import { AdminAppLink } from '@/components/admin-app-link';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -58,6 +58,7 @@ export default function RootLayout({
   const pathname = usePathname();
   const isLoginPath = pathname === '/login' || pathname?.startsWith('/login/');
   const showManualLink = !!profile?.rol_usuario;
+  const roleLabel = rolUsuarioLabel(profile?.rol_usuario);
 
   useEffect(() => {
     const applyTheme = (t: 'light' | 'dark') => {
@@ -77,6 +78,7 @@ export default function RootLayout({
     let cancelled = false;
 
     const syncSession = async () => {
+      setLoading(true);
       const session = getSession();
       if (!session) {
         if (!cancelled) {
@@ -121,7 +123,9 @@ export default function RootLayout({
   useEffect(() => {
     if (loading) return;
 
-    if (!sessionUser && !isLoginPath) {
+    const hasStoredSession = Boolean(getSession());
+
+    if (!sessionUser && !isLoginPath && !hasStoredSession) {
       router.push('/login');
     } else if (sessionUser && isLoginPath) {
       router.push('/');
@@ -179,7 +183,12 @@ export default function RootLayout({
                 </button>
 
                 {sessionUser && (
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    {roleLabel && (
+                      <span className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700/80 rounded-md px-1.5 py-0.5 sm:px-2">
+                        {roleLabel}
+                      </span>
+                    )}
                     <span className="text-muted text-xs md:text-sm max-w-[100px] md:max-w-none truncate">
                       {sessionUser.email}
                     </span>

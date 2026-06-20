@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { login, getLoginErrorMessage } from '@/lib/auth';
 import { getSafeRedirectPath } from '@/lib/safe-redirect';
 import { LockIcon, EyeIcon, EyeOffIcon } from '@/components/icons';
@@ -13,7 +13,6 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -24,8 +23,7 @@ function LoginForm() {
     try {
       await login({ username: username.trim(), password }, remember);
       const redirect = getSafeRedirectPath(searchParams.get('redirect'));
-      router.push(redirect);
-      router.refresh();
+      window.location.href = redirect;
     } catch (err) {
       setError(getLoginErrorMessage(err));
       setLoading(false);
