@@ -109,8 +109,6 @@ export default function SearchPage() {
     try {
       const { data, count } = await printerService.searchPrinters(searchTerm, page, size);
 
-      console.log('[DEBUG] page.tsx - resultados:', data.length, 'count:', count);
-
       // Interceptar resultados exactos o vacíos para búsqueda por serial
       if (isNewSearch && effectiveSearchType === 'serial' && searchTerm.trim() !== '') {
         if (count === 1 && data.length > 0) {

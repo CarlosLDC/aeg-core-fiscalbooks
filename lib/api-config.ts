@@ -2,6 +2,7 @@ export const DEFAULT_API_PATH_PREFIX = '/api';
 
 const PRODUCTION_HOSTS = new Set([
   'aeg-core-admin.vercel.app',
+  'aeg-libros-fiscales.vercel.app',
   'aeg-admin.tech',
   'www.aeg-admin.tech',
 ]);

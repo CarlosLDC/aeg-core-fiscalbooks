@@ -21,5 +21,5 @@ export type AuthMeResponse = {
 };
 
 export async function fetchAuthMe(): Promise<AuthMeResponse> {
-  return apiFetch<AuthMeResponse>('/api/auth/me');
+  return apiFetch<AuthMeResponse>('/api/auth/fiscal-book/me');
 }

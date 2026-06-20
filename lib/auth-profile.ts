@@ -43,6 +43,10 @@ function normalizeRole(value: unknown): Role | null {
     CENTRO_SERVICIO: 'SERVICE_CENTER',
     SERVICECENTER: 'SERVICE_CENTER',
     INSPECTOR: 'SENIAT',
+    FISCAL_ADMIN: 'ADMIN',
+    FISCAL_TECHNICIAN: 'TECHNICIAN',
+    FISCAL_AUDITOR: 'SENIAT',
+    AUDITOR: 'SENIAT',
   };
   const role = aliases[normalized] ?? normalized;
   return ROLES.includes(role as Role) ? (role as Role) : null;
