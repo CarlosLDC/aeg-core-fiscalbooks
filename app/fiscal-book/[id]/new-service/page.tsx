@@ -363,7 +363,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       <main className="container mx-auto px-4 py-12 max-w-3xl flex-1 flex flex-col">
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-8 text-center">
           <p className="text-slate-800 dark:text-slate-200 font-semibold mb-4">
-            Solo usuarios con rol <strong>técnico</strong> o <strong>administrador</strong> pueden registrar servicios en el libro fiscal.
+            Solo usuarios con rol <strong>técnico</strong> pueden registrar servicios en el libro fiscal.
           </p>
           <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
             Volver al libro fiscal

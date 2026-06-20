@@ -49,7 +49,7 @@ export function isAdminOrSeniat(profile: PerfilApp | null | undefined): boolean 
 export function canRegistrarServiciosEInspecciones(
   profile: PerfilApp | null | undefined,
 ): boolean {
-  return isTecnico(profile) || isAdmin(profile);
+  return isTecnico(profile);
 }
 
 export function rolUsuarioLabel(rol: RolUsuario | null | undefined): string | null {
@@ -67,5 +67,5 @@ export function rolUsuarioLabel(rol: RolUsuario | null | undefined): string | nu
 
 export function canWriteFiscalBook(profile: UserProfile | null | undefined): boolean {
   if (!profile) return false;
-  return profile.role === 'TECHNICIAN' || profile.role === 'ADMIN';
+  return profile.role === 'TECHNICIAN';
 }
