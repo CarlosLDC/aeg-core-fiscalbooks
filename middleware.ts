@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
 
   const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
 
-  if (pathname.startsWith('/login')) {
+  if (pathname.startsWith('/login') || pathname.startsWith('/auth/handoff')) {
     return NextResponse.next();
   }
 

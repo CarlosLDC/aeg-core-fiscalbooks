@@ -57,6 +57,9 @@ export default function RootLayout({
   const router = useRouter();
   const pathname = usePathname();
   const isLoginPath = pathname === '/login' || pathname?.startsWith('/login/');
+  const isAuthHandoffPath =
+    pathname === '/auth/handoff' || pathname?.startsWith('/auth/handoff/');
+  const isPublicAuthPath = isLoginPath || isAuthHandoffPath;
   const showManualLink = !!profile?.rol_usuario;
   const roleLabel = rolUsuarioLabel(profile?.rol_usuario);
 
@@ -125,12 +128,12 @@ export default function RootLayout({
 
     const hasStoredSession = Boolean(getSession());
 
-    if (!sessionUser && !isLoginPath && !hasStoredSession) {
+    if (!sessionUser && !isPublicAuthPath && !hasStoredSession) {
       router.push('/login');
     } else if (sessionUser && isLoginPath) {
       router.push('/');
     }
-  }, [sessionUser, loading, isLoginPath, router]);
+  }, [sessionUser, loading, isLoginPath, isPublicAuthPath, router]);
 
   const cycleTheme = () => {
     const nextTheme: 'light' | 'dark' = theme === 'light' ? 'dark' : 'light';
@@ -208,7 +211,7 @@ export default function RootLayout({
             <UserProfileContext.Provider
               value={{ sessionUser, profile, authProfile, loading, tecnicoDistribuidoraId }}
             >
-              {loading && !isLoginPath ? (
+              {loading && !isPublicAuthPath ? (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="animate-pulse text-muted font-medium">Cargando sesión...</div>
                 </div>
