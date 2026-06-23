@@ -81,6 +81,11 @@ export default function RootLayout({
     let cancelled = false;
 
     const syncSession = async () => {
+      if (isAuthHandoffPath) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       const session = getSession();
       if (!session) {
@@ -121,7 +126,7 @@ export default function RootLayout({
     return () => {
       cancelled = true;
     };
-  }, [pathname]);
+  }, [pathname, isAuthHandoffPath]);
 
   useEffect(() => {
     if (loading) return;

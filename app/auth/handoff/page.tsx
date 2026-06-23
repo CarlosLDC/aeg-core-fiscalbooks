@@ -1,46 +1,36 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { resolveAndStoreUserProfile } from '@/lib/auth-profile';
+import { useEffect, useRef, useState } from 'react';
+import {
+  establishSessionFromHandoff,
+  getLoginErrorMessage,
+} from '@/lib/auth';
 import { parseAuthHandoffHash, AUTH_HANDOFF_PATH } from '@/lib/auth-handoff';
-import { setStoredToken } from '@/lib/auth-storage';
-import { getLoginErrorMessage } from '@/lib/auth';
 
 export default function AuthHandoffPage() {
-  const router = useRouter();
+  const started = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    if (started.current) return;
+    started.current = true;
 
-    void (async () => {
-      const { token, remember, next } = parseAuthHandoffHash(
-        window.location.hash,
-      );
+    const { token, remember, next } = parseAuthHandoffHash(window.location.hash);
+    if (!token) {
+      window.location.replace('/login');
+      return;
+    }
 
-      if (!token) {
-        router.replace('/login');
-        return;
-      }
-
-      try {
-        setStoredToken(token, remember);
-        await resolveAndStoreUserProfile(token, remember);
-        if (cancelled) return;
+    void establishSessionFromHandoff(token, remember)
+      .then(() => {
         window.history.replaceState(null, '', AUTH_HANDOFF_PATH);
         window.location.replace(next);
-      } catch (err) {
-        if (cancelled) return;
+      })
+      .catch((err) => {
         setError(getLoginErrorMessage(err));
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
+      });
+  }, []);
 
   if (error) {
     return (
@@ -50,7 +40,9 @@ export default function AuthHandoffPage() {
           <button
             type="button"
             className="mt-4 text-sm font-medium text-accent hover:underline"
-            onClick={() => router.replace('/login')}
+            onClick={() => {
+              window.location.replace('/login');
+            }}
           >
             Ir al inicio de sesión
           </button>

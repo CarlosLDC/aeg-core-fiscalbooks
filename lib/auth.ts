@@ -5,12 +5,21 @@ import {
   resolveAndStoreUserProfile,
   type UserProfile,
 } from '@/lib/auth-profile';
+import { setStoredProfile } from '@/lib/auth-profile-storage';
 import {
   clearStoredToken,
   getStoredToken,
   setStoredToken,
 } from '@/lib/auth-storage';
-import { getUsernameFromToken, isTokenExpired } from '@/lib/jwt';
+import {
+  getBranchIdFromToken,
+  getDistributorIdFromToken,
+  getNationalIdFromToken,
+  getRoleFromToken,
+  getUserIdFromToken,
+  getUsernameFromToken,
+  isTokenExpired,
+} from '@/lib/jwt';
 import type { AuthResponse, LoginRequest } from '@/types/auth';
 import { ApiError } from '@/types/auth';
 
@@ -45,6 +54,46 @@ export async function login(
   setStoredToken(token, remember);
   await resolveAndStoreUserProfile(token, remember);
   return { ...data, token };
+}
+
+/** Restaura sesión desde el panel admin sin pedir credenciales de nuevo. */
+export async function establishSessionFromHandoff(
+  token: string,
+  remember: boolean,
+): Promise<UserProfile> {
+  setStoredToken(token, remember);
+  try {
+    return await resolveAndStoreUserProfile(token, remember);
+  } catch (error) {
+    const username = getUsernameFromToken(token);
+    const role = getRoleFromToken(token);
+    if (!username || !role) throw error;
+
+    const profile: UserProfile = {
+      userId: getUserIdFromToken(token),
+      username,
+      name: null,
+      email: username,
+      nationalId: getNationalIdFromToken(token),
+      role,
+      branchId: getBranchIdFromToken(token),
+      distributorId: getDistributorIdFromToken(token),
+    };
+
+    setStoredProfile(
+      {
+        role: profile.role,
+        userId: profile.userId,
+        branchId: profile.branchId,
+        distributorId: profile.distributorId,
+        name: profile.name,
+        nationalId: profile.nationalId,
+      },
+      remember,
+    );
+
+    return profile;
+  }
 }
 
 export function logout() {
