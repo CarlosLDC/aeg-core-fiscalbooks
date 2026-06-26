@@ -4,7 +4,8 @@ import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUserProfile } from '@/app/layout';
-import { canRegistrarServiciosEInspecciones } from '@/lib/roles';
+import { canCreateAnnualInspection } from '@/lib/fiscal-permissions';
+import { resolveAnnualInspectionActor } from '@/lib/field-actor-resolver';
 import { printerService } from '@/lib/printer-service';
 import { createAnnualInspection } from '@/lib/annual-inspections-api';
 import { messageFromUnknownError } from '@/lib/api-error-message';
@@ -20,12 +21,15 @@ type InspectorInfo = {
 export default function NewAnnualInspection({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { profile, authProfile, loading: authLoading } = useUserProfile();
+  const { authProfile, loading: authLoading } = useUserProfile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [loadingPrinter, setLoadingPrinter] = useState(true);
+  const [loadingInspector, setLoadingInspector] = useState(true);
+  const [inspectorLoadError, setInspectorLoadError] = useState<string | null>(null);
   const [printer, setPrinter] = useState<Awaited<ReturnType<typeof printerService.getPrinterById>>>(undefined);
+  const [inspectorInfo, setInspectorInfo] = useState<InspectorInfo | null>(null);
 
   const [observaciones, setObservaciones] = useState('');
   const [precintoViolentado, setPrecintoViolentado] = useState(false);
@@ -34,14 +38,31 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
   const [successOpen, setSuccessOpen] = useState(false);
   const [successRecordId, setSuccessRecordId] = useState<string | null>(null);
 
-  const inspectorInfo: InspectorInfo | null =
-    authProfile?.userId != null
-      ? {
-          userId: authProfile.userId,
-          userName: authProfile.name ?? authProfile.username ?? 'Inspector',
-          userNationalId: authProfile.nationalId ?? '',
-        }
-      : null;
+  useEffect(() => {
+    if (authLoading || !authProfile) return;
+
+    const load = async () => {
+      setLoadingInspector(true);
+      setInspectorLoadError(null);
+      setInspectorInfo(null);
+
+      const resolved = await resolveAnnualInspectionActor(authProfile);
+      if ('message' in resolved) {
+        setInspectorLoadError(resolved.message);
+        setLoadingInspector(false);
+        return;
+      }
+
+      setInspectorInfo({
+        userId: resolved.userId,
+        userName: resolved.userName,
+        userNationalId: resolved.userNationalId,
+      });
+      setLoadingInspector(false);
+    };
+
+    load();
+  }, [authLoading, authProfile]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -94,12 +115,12 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
     }
   };
 
-  if (!authLoading && profile && !canRegistrarServiciosEInspecciones(profile)) {
+  if (!authLoading && authProfile && !canCreateAnnualInspection(authProfile)) {
     return (
       <main className="container mx-auto px-4 py-12 max-w-3xl flex-1 flex flex-col">
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-8 text-center">
           <p className="text-slate-800 dark:text-slate-200 font-semibold mb-4">
-            Solo usuarios con rol <strong>técnico</strong> pueden registrar inspecciones en el libro fiscal.
+            Solo usuarios con rol <strong>administrador</strong>, <strong>distribuidor</strong> o <strong>técnico de centro de servicio</strong> pueden registrar inspecciones en el libro fiscal.
           </p>
           <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
             Volver al libro fiscal
@@ -109,7 +130,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
     );
   }
 
-  if (authLoading || loadingPrinter) {
+  if (authLoading || loadingPrinter || loadingInspector) {
     return (
       <main className="container mx-auto px-4 py-32 max-w-3xl flex-1 flex flex-col justify-center text-center">
         <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -133,13 +154,13 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
     );
   }
 
-  if (!inspectorInfo) {
+  if (inspectorLoadError || !inspectorInfo) {
     return (
       <main className="container mx-auto px-4 py-12 max-w-3xl flex-1 flex flex-col">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 text-center">
           <p className="text-slate-800 dark:text-slate-200 font-semibold mb-2">No se puede registrar la inspección</p>
           <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">
-            Su perfil no tiene un usuario vinculado. Contacte al administrador del sistema.
+            {inspectorLoadError ?? 'Su perfil no tiene un usuario vinculado. Contacte al administrador del sistema.'}
           </p>
           <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
             Volver al libro fiscal

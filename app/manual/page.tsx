@@ -220,8 +220,8 @@ export default function ManualPage() {
             <Li><strong>Detalles de la Intervención:</strong> falla reportada y acción realizada.</Li>
             <Li><strong>Cierre y Responsabilidades:</strong> técnico autorizado y persona que recibe.</Li>
           </ol>
-          <Sub>7.2 Crear Servicio (Solo Técnico)</Sub>
-          <P>Pulse <strong>&quot;+&quot;</strong> en la pestaña Servicios. Se autocompletan: técnico responsable y centro/distribuidora según su perfil.</P>
+          <Sub>7.2 Crear Servicio (Administrador o Técnico de Centro)</Sub>
+          <P>Pulse <strong>&quot;+&quot;</strong> en la pestaña Servicios. Se autocompletan: firmante responsable y centro de servicio según su perfil (el administrador puede firmar sin centro asignado).</P>
           <Table headers={['Campo', 'Tipo', 'Descripción']} rows={[
             ['Fecha de Solicitud','Fecha','Cuándo se solicitó'],
             ['Inicio/Fin Servicio','Fecha+Hora','Período del servicio'],
@@ -244,7 +244,7 @@ export default function ManualPage() {
           <SectionTitle id="inspecciones">8. Inspecciones Anuales</SectionTitle>
           <Sub>8.1 Contenido</Sub>
           <P>Cada inspección tiene 2 secciones: <strong>Datos del Centro y Técnico</strong> (centro, RIF, fecha, inspector) y <strong>Detalles de la Inspección</strong> (observaciones y hallazgos).</P>
-          <Sub>8.2 Crear Inspección (Solo Técnico)</Sub>
+          <Sub>8.2 Crear Inspección (Administrador, Distribuidor o Técnico de Centro)</Sub>
           <P>Pulse <strong>&quot;+&quot;</strong> en la pestaña Inspecciones. Complete: fecha de inspección (no futura), observaciones/resultados e indique si el precinto fue violentado. El inspector se autocompleta desde su perfil.</P>
 
           <SectionTitle id="filtros">9. Filtros y Navegación</SectionTitle>
@@ -267,20 +267,20 @@ export default function ManualPage() {
           <P>Archivo descargado: <code className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-sm">{'{SERIAL}'}-{'{TIMESTAMP}'}.pdf</code></P>
 
           <SectionTitle id="roles">11. Roles y Permisos</SectionTitle>
-          <Table headers={['Funcionalidad', 'SENIAT', 'Técnico', 'Admin']} rows={[
-            ['Buscar equipos','✅ Todos','✅ Su distribuidora','✅ Todos'],
-            ['Ver libro fiscal','✅','✅','✅'],
-            ['Crear servicio técnico','❌','✅','❌'],
-            ['Crear inspección','❌','✅','❌'],
-            ['Exportar PDF','✅','✅','✅'],
-            ['Filtrar registros','✅','✅','✅'],
+          <Table headers={['Funcionalidad', 'SENIAT', 'Distribuidor', 'Técnico (centro)', 'Admin']} rows={[
+            ['Buscar equipos','✅ Todos','✅ Su distribuidora','✅ Asignados','✅ Todos'],
+            ['Ver libro fiscal','✅','✅','✅','✅'],
+            ['Crear servicio técnico','❌','❌','✅','✅'],
+            ['Crear inspección','❌','✅','✅','✅'],
+            ['Exportar PDF','✅','✅','✅','✅'],
+            ['Filtrar registros','✅','✅','✅','✅'],
           ]} />
-          <P><strong>SENIAT:</strong> acceso de solo lectura a todos los equipos. <strong>Técnico:</strong> acceso operativo limitado a equipos de su distribuidora. <strong>Admin:</strong> consulta completa sin crear registros.</P>
+          <P><strong>SENIAT:</strong> acceso de solo lectura global. <strong>Distribuidor:</strong> puede crear inspecciones anuales en equipos de su distribuidora. <strong>Técnico (centro de servicio):</strong> puede crear servicios técnicos e inspecciones en equipos asignados. <strong>Admin:</strong> consulta global y puede crear servicios e inspecciones firmando como sí mismo.</P>
 
           <SectionTitle id="faq">12. Preguntas Frecuentes</SectionTitle>
           {[
             ['¿Qué hago si no puedo iniciar sesión?', 'Verifique correo y contraseña. Si persiste, contacte a un administrador de AEG.'],
-            ['¿Por qué no veo el botón "+"?', 'Solo usuarios con rol Técnico pueden crear registros.'],
+            ['¿Por qué no veo el botón "+"?', 'El botón aparece según su rol: servicios técnicos solo para administrador o técnico de centro; inspecciones para administrador, distribuidor o técnico de centro.'],
             ['¿Qué significa "N/D"?', 'No Disponible — el dato no ha sido registrado para ese equipo.'],
             ['¿Puedo editar un registro guardado?', 'No. Los registros son inmutables para garantizar la integridad del libro fiscal.'],
             ['¿Se puede usar desde celular?', 'Sí. El sistema es responsive y se adapta a cualquier pantalla.'],

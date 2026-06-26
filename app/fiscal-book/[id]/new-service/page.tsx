@@ -2,13 +2,13 @@
 
 import { useState, use, useEffect } from 'react';
 import { useUserProfile } from '@/app/layout';
-import { canRegistrarServiciosEInspecciones } from '@/lib/roles';
+import { canCreateTechnicalService } from '@/lib/fiscal-permissions';
 import { printerService } from '@/lib/printer-service';
 import type { FiscalPrinter } from '@/lib/types';
 import type { SealResponse } from '@/types/seal';
 import { createTechnicalService } from '@/lib/technical-services-api';
 import { fetchSeals } from '@/lib/seals-api';
-import { resolveTechnicianForProfile } from '@/lib/technician-resolver';
+import { resolveTechnicalServiceActor } from '@/lib/field-actor-resolver';
 import { messageFromUnknownError } from '@/lib/api-error-message';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -25,7 +25,6 @@ import {
 type TecnicoCentroRow = {
   userId: number;
   centro_servicio_id: number | null;
-  distribuidora_id: number | null;
   usuario_nombre: string;
   usuario_cedula: string | null;
   empresa_razon_social: string | null;
@@ -48,20 +47,10 @@ function formatCentroDisplay(r: {
   return lugar ? `${org} — ${lugar}` : org;
 }
 
-/** Muestra sede (empresa + ubicación) y si el alta es bajo distribuidora sin centro en BD. */
-function formatLugarServicio(r: TecnicoCentroRow) {
-  const base = formatCentroDisplay(r);
-  if (r.centro_servicio_id != null) return base;
-  if (r.distribuidora_id != null) {
-    return `${base} — Servicio bajo distribuidora (sin centro de servicio en sucursal)`;
-  }
-  return base;
-}
-
 export default function NewTechnicalService({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { profile, authProfile, loading: authLoading } = useUserProfile();
+  const { authProfile, loading: authLoading } = useUserProfile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,8 +64,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
   // Form state
   // Foreign Keys (simplified as number inputs for now)
   const [idCentroServicio, setIdCentroServicio] = useState('');
-  /** Presente cuando el servicio se registra con `servicios_tecnicos.id_distribuidora` (sucursal distribuidora sin `centros_servicio`). */
-  const [idDistribuidora, setIdDistribuidora] = useState('');
   const [tecnicoInfo, setTecnicoInfo] = useState<TecnicoCentroRow | null>(null);
   
   // Dates
@@ -129,9 +116,8 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       setTecnicoInfo(null);
       setTecnicosData([]);
       setIdCentroServicio('');
-      setIdDistribuidora('');
 
-      const resolved = await resolveTechnicianForProfile(authProfile);
+      const resolved = await resolveTechnicalServiceActor(authProfile);
       if ('message' in resolved) {
         setTecnicoLoadError(resolved.message);
         setLoadingTecnicos(false);
@@ -142,7 +128,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       const row: TecnicoCentroRow = {
         userId: resolved.userId,
         centro_servicio_id: resolved.serviceCenterId,
-        distribuidora_id: resolved.distributorId,
         usuario_nombre: resolved.userName,
         usuario_cedula: resolved.userNationalId,
         empresa_razon_social: resolved.companyName,
@@ -154,9 +139,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       setTecnicoInfo(row);
       setIdCentroServicio(
         row.centro_servicio_id != null ? String(row.centro_servicio_id) : '',
-      );
-      setIdDistribuidora(
-        row.distribuidora_id != null ? String(row.distribuidora_id) : '',
       );
       setTecnicosData([row]);
       setLoadingTecnicos(false);
@@ -213,11 +195,8 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       const numCosto = parseFloat(costo);
       const numUserId = tecnicoInfo.userId;
       const rawCentro = idCentroServicio.trim();
-      const rawDist = idDistribuidora.trim();
       const numCentro =
         rawCentro === '' ? null : Number(rawCentro);
-      const numDist =
-        rawDist === '' ? null : Number(rawDist);
 
       if (!Number.isFinite(numZInicial) || !Number.isFinite(numZFinal)) {
         throw new Error('Los números de Reporte Z deben ser valores numéricos enteros.');
@@ -229,17 +208,14 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
         throw new Error('Datos de usuario inválidos.');
       }
       const centroOk = numCentro != null && Number.isFinite(numCentro) && numCentro > 0;
-      const distOk = numDist != null && Number.isFinite(numDist) && numDist > 0;
-      if (!centroOk && !distOk) {
+      const isAdminSigner = authProfile?.role === 'ADMIN';
+      if (!isAdminSigner && !centroOk) {
         throw new Error(
-          'Debe indicarse un centro de servicio o una distribuidora para el registro (datos del directorio).'
+          'Debe indicarse un centro de servicio para el registro.',
         );
       }
       if (rawCentro !== '' && !centroOk) {
         throw new Error('Identificador de centro de servicio inválido.');
-      }
-      if (rawDist !== '' && !distOk) {
-        throw new Error('Identificador de distribuidora inválido.');
       }
 
       const solicitud = parseLocalDateOnly(fechaSolicitud, 'Fecha de solicitud');
@@ -331,7 +307,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
         printerId: cleanId,
         userId: numUserId,
         serviceCenterId: centroOk ? numCentro : null,
-        distributorId: distOk ? numDist : null,
         sealTampered: precintoViolentado,
         notes: observaciones || null,
         startAt: toIsoUtc(start),
@@ -358,12 +333,12 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
     }
   };
 
-  if (!authLoading && profile && !canRegistrarServiciosEInspecciones(profile)) {
+  if (!authLoading && authProfile && !canCreateTechnicalService(authProfile)) {
     return (
       <main className="container mx-auto px-4 py-12 max-w-3xl flex-1 flex flex-col">
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-8 text-center">
           <p className="text-slate-800 dark:text-slate-200 font-semibold mb-4">
-            Solo usuarios con rol <strong>técnico</strong> pueden registrar servicios en el libro fiscal.
+            Solo usuarios con rol <strong>administrador</strong> o <strong>técnico de centro de servicio</strong> pueden registrar servicios en el libro fiscal.
           </p>
           <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
             Volver al libro fiscal
@@ -473,32 +448,18 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
 
             <div className="space-y-4">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                Centro de servicio / Distribuidora
+                Centro de servicio
               </label>
               <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500">
                 {tecnicoInfo
-                  ? formatLugarServicio(tecnicoInfo)
+                  ? tecnicoInfo.centro_servicio_id != null
+                    ? formatCentroDisplay(tecnicoInfo)
+                    : authProfile?.role === 'ADMIN'
+                      ? 'Sin centro de servicio (administrador firmante)'
+                      : '—'
                   : idCentroServicio
-                    ? (() => {
-                        const selected = tecnicosData.find(
-                          (t) =>
-                            t.centro_servicio_id != null &&
-                            String(t.centro_servicio_id) === idCentroServicio
-                        );
-                        return selected ? formatLugarServicio(selected) : `Centro #${idCentroServicio}`;
-                      })()
-                    : idDistribuidora
-                      ? (() => {
-                          const selected = tecnicosData.find(
-                            (t) =>
-                              t.distribuidora_id != null &&
-                              String(t.distribuidora_id) === idDistribuidora
-                          );
-                          return selected
-                            ? formatLugarServicio(selected)
-                            : `Distribuidora #${idDistribuidora}`;
-                        })()
-                      : '—'}
+                    ? `Centro #${idCentroServicio}`
+                    : '—'}
               </div>
             </div>
           </div>

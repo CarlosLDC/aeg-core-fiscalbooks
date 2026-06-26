@@ -23,13 +23,13 @@ export const UserProfileContext = createContext<{
   profile: UserProfile | null;
   authProfile: AuthUserProfile | null;
   loading: boolean;
-  tecnicoDistribuidoraId: number | null;
+  distributorId: number | null;
 }>({
   sessionUser: null,
   profile: null,
   authProfile: null,
   loading: true,
-  tecnicoDistribuidoraId: null,
+  distributorId: null,
 });
 
 export function useUserProfile() {
@@ -52,7 +52,7 @@ export default function RootLayout({
     return (localStorage.getItem('theme') as 'light' | 'dark' | null) || 'light';
   });
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [tecnicoDistribuidoraId, setTecnicoDistribuidoraId] = useState<number | null>(null);
+  const [distributorId, setDistributorId] = useState<number | null>(null);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -93,7 +93,7 @@ export default function RootLayout({
           setSessionUser(null);
           setAuthProfile(null);
           setProfile(null);
-          setTecnicoDistribuidoraId(null);
+          setDistributorId(null);
           setLoading(false);
         }
         return;
@@ -118,7 +118,7 @@ export default function RootLayout({
       });
       setAuthProfile(resolved);
       setProfile(profileToPerfilApp(resolved));
-      setTecnicoDistribuidoraId(resolved.distributorId ?? null);
+      setDistributorId(resolved.distributorId ?? null);
       setLoading(false);
     };
 
@@ -153,7 +153,7 @@ export default function RootLayout({
     setSessionUser(null);
     setAuthProfile(null);
     setProfile(null);
-    setTecnicoDistribuidoraId(null);
+    setDistributorId(null);
     setLoading(false);
     authLogout();
     window.location.href = '/login';
@@ -214,7 +214,7 @@ export default function RootLayout({
 
           <div className="flex-1 w-full flex flex-col">
             <UserProfileContext.Provider
-              value={{ sessionUser, profile, authProfile, loading, tecnicoDistribuidoraId }}
+              value={{ sessionUser, profile, authProfile, loading, distributorId }}
             >
               {loading && !isPublicAuthPath ? (
                 <div className="flex-1 flex items-center justify-center">

@@ -3,7 +3,7 @@
 import { useState, use, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useUserProfile } from '@/app/layout';
-import { canRegistrarServiciosEInspecciones } from '@/lib/roles';
+import { canCreateAnnualInspection, canCreateTechnicalService } from '@/lib/fiscal-permissions';
 import { FiscalPrinter, TechnicalReview, AnnualInspection } from '@/lib/types';
 import { printerService } from '@/lib/printer-service';
 import { truncateVersion, getActiveSealSerial, formatRegistroCreado } from '@/lib/fiscal-helpers';
@@ -19,7 +19,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { profile, loading: authLoading } = useUserProfile();
+    const { profile, authProfile, loading: authLoading } = useUserProfile();
     const [printer, setPrinter] = useState<FiscalPrinter | undefined>(undefined);
     const [loading, setLoading] = useState(true);
 
@@ -677,7 +677,9 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                             </svg>
                         </button>
                     )}
-                    {canRegistrarServiciosEInspecciones(profile) && (
+                    {(viewMode === 'tech'
+                        ? canCreateTechnicalService(authProfile)
+                        : canCreateAnnualInspection(authProfile)) && (
                         <Link
                             href={`/fiscal-book/${id}/${viewMode === 'tech' ? 'new-service' : 'new-inspection'}`}
                             className="flex justify-center items-center h-7 w-7 rounded-lg transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700"
