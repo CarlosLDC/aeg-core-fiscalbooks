@@ -14,6 +14,7 @@ import {
   FISCAL_MQTT_TOPIC_SUFFIX,
 } from '@/lib/fiscal-mqtt-topics';
 import {
+  ANNUAL_INSPECTION_DEFAULT_PRODUCT,
   applyFailedTestCreditNote,
   applyFailedTestInvoice,
   applyProductDescriptionChange,
