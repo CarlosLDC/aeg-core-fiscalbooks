@@ -135,6 +135,7 @@ export interface FiscalPrinter {
   created_at?: string | null;
   fecha_instalacion?: string | null;
   direccion_mac?: string | null;
+  clientId?: number | null;
 
   businessName: string | null;
   rif: string | null;

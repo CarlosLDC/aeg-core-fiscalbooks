@@ -14,7 +14,6 @@ import {
   FISCAL_MQTT_TOPIC_SUFFIX,
 } from '@/lib/fiscal-mqtt-topics';
 import {
-  ANNUAL_INSPECTION_DEFAULT_PRODUCT,
   applyFailedTestCreditNote,
   applyFailedTestInvoice,
   applyProductDescriptionChange,
@@ -26,13 +25,14 @@ import {
   emptyAnnualInspectionChecklist,
   type AnnualInspectionChecklistKey,
   type AnnualInspectionChecklistState,
+  type AnnualInspectionMqttCompletion,
   type AnnualInspectionMqttFlowState,
 } from '@/lib/annual-inspection-mqtt-state';
 
 type AnnualInspectionMqttSectionProps = {
   printerId: number;
   fiscalSerial: string;
-  onMqttCompleted: (checklist: AnnualInspectionChecklistState) => void;
+  onMqttCompleted: (completion: AnnualInspectionMqttCompletion) => void;
 };
 
 export function AnnualInspectionMqttSection({
@@ -164,7 +164,7 @@ export function AnnualInspectionMqttSection({
     setSubmittingInspection(true);
     setModalError(null);
     try {
-      await submitAnnualInspectionMqtt({
+      const result = await submitAnnualInspectionMqtt({
         printerId: flow.printerId,
         chkPrecinto: flow.checklist.chkPrecinto,
         chkEtiquetaFiscal: flow.checklist.chkEtiquetaFiscal,
@@ -173,7 +173,12 @@ export function AnnualInspectionMqttSection({
         chkSensorPapel: flow.checklist.chkSensorPapel,
       });
       setMqttCompleted(true);
-      onMqttCompleted(flow.checklist);
+      onMqttCompleted({
+        checklist: flow.checklist,
+        registroImpresora: flow.registroImpresora,
+        numeroFacturaPrueba: flow.numeroFacturaPrueba,
+        mqttSetDateRevOTimestamp: result.dataTimestamp,
+      });
       setModalOpen(false);
     } catch (err) {
       setModalError(getAnnualInspectionMqttErrorMessage(err));

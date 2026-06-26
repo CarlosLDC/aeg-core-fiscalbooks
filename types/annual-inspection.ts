@@ -5,6 +5,9 @@ export type AnnualInspectionRequest = {
   notes?: string | null;
   photoUrls: string[];
   inspectionDate?: string | null;
+  mqttRegistroImpresora?: string | null;
+  mqttSetDateRevOAt?: number | null;
+  mqttNumeroFacturaPrueba?: number | null;
 };
 
 export type AnnualInspectionResponse = {

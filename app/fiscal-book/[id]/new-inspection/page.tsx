@@ -8,7 +8,7 @@ import { useUserProfile } from '@/app/layout';
 import { canCreateAnnualInspection } from '@/lib/fiscal-permissions';
 import { resolveAnnualInspectionActor } from '@/lib/field-actor-resolver';
 import { isPrinterEligibleForAnnualInspectionMqtt } from '@/lib/annual-inspection-mqtt-state';
-import type { AnnualInspectionChecklistState } from '@/lib/annual-inspection-mqtt-state';
+import type { AnnualInspectionMqttCompletion } from '@/lib/annual-inspection-mqtt-state';
 import { printerService } from '@/lib/printer-service';
 import { createAnnualInspection } from '@/lib/annual-inspections-api';
 import { messageFromUnknownError } from '@/lib/api-error-message';
@@ -41,6 +41,9 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
   const [successOpen, setSuccessOpen] = useState(false);
   const [successRecordId, setSuccessRecordId] = useState<string | null>(null);
   const [mqttCompleted, setMqttCompleted] = useState(false);
+  const [mqttCompletion, setMqttCompletion] = useState<AnnualInspectionMqttCompletion | null>(
+    null,
+  );
 
   const cleanPrinterId = Number(id.replace('mock-p-', '').replace('fp-', ''));
 
@@ -114,6 +117,9 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
         notes: observaciones || null,
         photoUrls: [],
         inspectionDate: fechaInspeccion,
+        mqttRegistroImpresora: mqttCompletion?.registroImpresora ?? null,
+        mqttSetDateRevOAt: mqttCompletion?.mqttSetDateRevOTimestamp ?? null,
+        mqttNumeroFacturaPrueba: mqttCompletion?.numeroFacturaPrueba ?? null,
       });
 
       setSuccessRecordId(String(created.id));
@@ -221,17 +227,19 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
 
       {!isPrinterEligibleForAnnualInspectionMqtt(printer) ? (
         <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
-          Este equipo no está enajenado o no tiene serial/MAC configurados. La inspección anual
-          MQTT solo aplica a impresoras enajenadas con conectividad fiscal.
+          Este equipo no está enajenado, no tiene cliente asignado o le faltan serial/MAC
+          configurados. La inspección anual MQTT solo aplica a impresoras enajenadas con cliente
+          y conectividad fiscal.
         </div>
       ) : (
         <div className="mb-6">
           <AnnualInspectionMqttSection
             printerId={cleanPrinterId}
             fiscalSerial={printer.serial_fiscal}
-            onMqttCompleted={(checklist: AnnualInspectionChecklistState) => {
+            onMqttCompleted={(completion: AnnualInspectionMqttCompletion) => {
               setMqttCompleted(true);
-              setPrecintoViolentado(!checklist.chkPrecinto);
+              setMqttCompletion(completion);
+              setPrecintoViolentado(!completion.checklist.chkPrecinto);
             }}
           />
         </div>

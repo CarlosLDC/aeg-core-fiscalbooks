@@ -130,4 +130,7 @@ export type FiscalBookAnnualInspectionResponse = {
   sealTampered: boolean;
   notes: string | null;
   photoUrls: string[];
+  mqttRegistroImpresora?: string | null;
+  mqttSetDateRevOAt?: number | null;
+  mqttNumeroFacturaPrueba?: number | null;
 };

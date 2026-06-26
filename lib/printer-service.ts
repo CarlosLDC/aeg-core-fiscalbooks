@@ -126,6 +126,7 @@ function mapDetailToFiscalPrinter(detail: FiscalBookDetailResponse): FiscalPrint
       pickString(detail, 'installationDate', 'installation_date') ??
       detail.installationDate,
     direccion_mac: pickString(detail, 'macAddress', 'mac_address') ?? detail.macAddress,
+    clientId: pickNumber(detail, 'clientId', 'client_id') ?? detail.clientId,
     id_modelo_impresora: modelId != null ? String(modelId) : '',
     id_sucursal: branchId != null ? String(branchId) : null,
     id_distribuidor: distributorId != null ? String(distributorId) : null,

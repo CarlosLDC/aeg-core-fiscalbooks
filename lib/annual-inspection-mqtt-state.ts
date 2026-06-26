@@ -1,151 +1,20 @@
 import type { FiscalPrinter } from '@/lib/types';
+import {
+  isPrinterEligibleForAnnualInspectionMqtt as isEligibleRef,
+  type AnnualInspectionMqttPrinterRef,
+} from '@aeg/annual-inspection-mqtt';
 
-export const ANNUAL_INSPECTION_INSP_AO_OK = 'Bien' as const;
-export const ANNUAL_INSPECTION_INSP_AO_VIOLATED = 'Violentado' as const;
-export const ANNUAL_INSPECTION_INSP_AO_DEFECTIVE = 'Defectuoso' as const;
-export const ANNUAL_INSPECTION_DEFAULT_PRODUCT = 'COLGATE TOTAL';
+export * from '@aeg/annual-inspection-mqtt';
 
-export type AnnualInspectionChecklistKey =
-  | 'chkPrecinto'
-  | 'chkEtiquetaFiscal'
-  | 'chkFactura'
-  | 'chkNotaCredito'
-  | 'chkSensorPapel';
-
-export type AnnualInspectionChecklistState = Record<AnnualInspectionChecklistKey, boolean>;
-
-export type AnnualInspectionMqttFlowState = {
-  registroImpresora: string;
-  fiscalSerial: string;
-  printerId: number;
-  productDescription: string;
-  numeroFacturaPrueba: number | null;
-  checklist: AnnualInspectionChecklistState;
-};
-
-export const emptyAnnualInspectionChecklist = (): AnnualInspectionChecklistState => ({
-  chkPrecinto: false,
-  chkEtiquetaFiscal: false,
-  chkFactura: false,
-  chkNotaCredito: false,
-  chkSensorPapel: false,
-});
-
-export function createAnnualInspectionMqttFlowState(input: {
-  registroImpresora: string;
-  fiscalSerial: string;
-  printerId: number;
-  productDescription?: string;
-}): AnnualInspectionMqttFlowState {
+export function fiscalPrinterToMqttRef(printer: FiscalPrinter): AnnualInspectionMqttPrinterRef {
   return {
-    registroImpresora: input.registroImpresora,
-    fiscalSerial: input.fiscalSerial,
-    printerId: input.printerId,
-    productDescription: input.productDescription ?? ANNUAL_INSPECTION_DEFAULT_PRODUCT,
-    numeroFacturaPrueba: null,
-    checklist: emptyAnnualInspectionChecklist(),
+    status: printer.estatus,
+    clientId: printer.clientId,
+    macAddress: printer.direccion_mac ?? null,
+    fiscalSerial: printer.serial_fiscal ?? null,
   };
-}
-
-export function applySuccessfulTestInvoice(
-  flow: AnnualInspectionMqttFlowState,
-  numeroFacturaPrueba: number,
-): AnnualInspectionMqttFlowState {
-  return {
-    ...flow,
-    numeroFacturaPrueba,
-    checklist: { ...flow.checklist, chkFactura: true },
-  };
-}
-
-export function applyFailedTestInvoice(
-  flow: AnnualInspectionMqttFlowState,
-): AnnualInspectionMqttFlowState {
-  return {
-    ...flow,
-    numeroFacturaPrueba: null,
-    checklist: {
-      ...flow.checklist,
-      chkFactura: false,
-      chkNotaCredito: false,
-    },
-  };
-}
-
-export function applySuccessfulTestCreditNote(
-  flow: AnnualInspectionMqttFlowState,
-): AnnualInspectionMqttFlowState {
-  return {
-    ...flow,
-    checklist: { ...flow.checklist, chkNotaCredito: true },
-  };
-}
-
-export function applyFailedTestCreditNote(
-  flow: AnnualInspectionMqttFlowState,
-): AnnualInspectionMqttFlowState {
-  return {
-    ...flow,
-    checklist: { ...flow.checklist, chkNotaCredito: false },
-  };
-}
-
-export function applyProductDescriptionChange(
-  flow: AnnualInspectionMqttFlowState,
-  productDescription: string,
-): AnnualInspectionMqttFlowState {
-  if (flow.productDescription === productDescription) return flow;
-  return {
-    ...flow,
-    productDescription,
-    numeroFacturaPrueba: null,
-    checklist: {
-      ...flow.checklist,
-      chkFactura: false,
-      chkNotaCredito: false,
-    },
-  };
-}
-
-export function canSendAnnualInspectionTestCreditNote(
-  flow: AnnualInspectionMqttFlowState,
-): boolean {
-  return flow.numeroFacturaPrueba != null && flow.registroImpresora.trim().length > 0;
-}
-
-export function creditNoteDisabledReason(
-  flow: AnnualInspectionMqttFlowState | null,
-): string | null {
-  if (!flow) return 'Inicie el flujo de inspección anual.';
-  if (flow.numeroFacturaPrueba == null) {
-    return 'Disponible después de una factura de prueba exitosa (endFac code: 0).';
-  }
-  if (!flow.registroImpresora.trim()) {
-    return 'Disponible después de obtener el registro de la impresora.';
-  }
-  return null;
 }
 
 export function isPrinterEligibleForAnnualInspectionMqtt(printer: FiscalPrinter): boolean {
-  return (
-    printer.estatus === 'enajenada' &&
-    Boolean(printer.serial_fiscal?.trim()) &&
-    Boolean(printer.direccion_mac?.trim())
-  );
+  return isEligibleRef(fiscalPrinterToMqttRef(printer));
 }
-
-export const ANNUAL_INSPECTION_CHECKLIST_ROWS: ReadonlyArray<{
-  key: AnnualInspectionChecklistKey;
-  label: string;
-  action?: 'test-invoice' | 'test-credit-note';
-}> = [
-  { key: 'chkPrecinto', label: 'Estado del Precinto' },
-  { key: 'chkEtiquetaFiscal', label: 'Estado de la Etiqueta Fiscal' },
-  { key: 'chkFactura', label: 'Estado de la Factura', action: 'test-invoice' },
-  {
-    key: 'chkNotaCredito',
-    label: 'Estado de la Nota de Crédito',
-    action: 'test-credit-note',
-  },
-  { key: 'chkSensorPapel', label: 'Estado Sensor de Papel' },
-];
