@@ -3,9 +3,12 @@
 import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AnnualInspectionMqttSection } from '@/components/fiscal-book/annual-inspection-mqtt-section';
 import { useUserProfile } from '@/app/layout';
 import { canCreateAnnualInspection } from '@/lib/fiscal-permissions';
 import { resolveAnnualInspectionActor } from '@/lib/field-actor-resolver';
+import { isPrinterEligibleForAnnualInspectionMqtt } from '@/lib/annual-inspection-mqtt-state';
+import type { AnnualInspectionChecklistState } from '@/lib/annual-inspection-mqtt-state';
 import { printerService } from '@/lib/printer-service';
 import { createAnnualInspection } from '@/lib/annual-inspections-api';
 import { messageFromUnknownError } from '@/lib/api-error-message';
@@ -37,6 +40,9 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
 
   const [successOpen, setSuccessOpen] = useState(false);
   const [successRecordId, setSuccessRecordId] = useState<string | null>(null);
+  const [mqttCompleted, setMqttCompleted] = useState(false);
+
+  const cleanPrinterId = Number(id.replace('mock-p-', '').replace('fp-', ''));
 
   useEffect(() => {
     if (authLoading || !authProfile) return;
@@ -83,7 +89,11 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
     setError(null);
 
     try {
-      const cleanId = Number(id.replace('mock-p-', '').replace('fp-', ''));
+      if (!mqttCompleted) {
+        throw new Error(
+          'Debe completar la inspección anual obligatoria en la impresora (SetDateRevO) antes de guardar en el libro fiscal.',
+        );
+      }
 
       if (!inspectorInfo?.userId || !fechaInspeccion) {
         throw new Error('Todos los campos marcados con (*) son obligatorios según el reglamento.');
@@ -98,7 +108,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
       }
 
       const created = await createAnnualInspection({
-        printerId: cleanId,
+        printerId: cleanPrinterId,
         userId: inspectorInfo.userId,
         sealTampered: precintoViolentado,
         notes: observaciones || null,
@@ -204,11 +214,39 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
           Añadir Inspección Anual
         </h1>
         <p className="text-slate-500 dark:text-slate-400">
-          Registra una nueva revisión periódica por parte de inspector.
+          Complete la inspección MQTT en la impresora y luego registre la revisión en el libro
+          fiscal.
         </p>
       </div>
 
+      {!isPrinterEligibleForAnnualInspectionMqtt(printer) ? (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
+          Este equipo no está enajenado o no tiene serial/MAC configurados. La inspección anual
+          MQTT solo aplica a impresoras enajenadas con conectividad fiscal.
+        </div>
+      ) : (
+        <div className="mb-6">
+          <AnnualInspectionMqttSection
+            printerId={cleanPrinterId}
+            fiscalSerial={printer.serial_fiscal}
+            onMqttCompleted={(checklist: AnnualInspectionChecklistState) => {
+              setMqttCompleted(true);
+              setPrecintoViolentado(!checklist.chkPrecinto);
+            }}
+          />
+        </div>
+      )}
+
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+        <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
+          Registro en libro fiscal
+        </h2>
+        {!mqttCompleted ? (
+          <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+            Complete primero la inspección anual obligatoria en la impresora para habilitar el
+            guardado en el libro.
+          </p>
+        ) : null}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-4">
@@ -270,7 +308,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
             </Link>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !mqttCompleted}
               className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? 'Guardando...' : 'Guardar Inspección'}
