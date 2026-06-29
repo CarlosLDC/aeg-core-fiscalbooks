@@ -26,38 +26,6 @@ type InspectorInfo = {
   userNationalId: string;
 };
 
-function AnnualInspectionStepIndicator({ printerStepDone }: { printerStepDone: boolean }) {
-  return (
-    <ol className="mb-6 flex items-center gap-2 text-sm">
-      <li
-        className={`flex items-center gap-2 rounded-full px-3 py-1.5 font-semibold ${
-          printerStepDone
-            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200'
-            : 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200'
-        }`}
-      >
-        <span className="flex size-5 items-center justify-center rounded-full bg-white/80 text-xs dark:bg-black/20">
-          {printerStepDone ? '✓' : '1'}
-        </span>
-        Impresora
-      </li>
-      <li aria-hidden className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-      <li
-        className={`flex items-center gap-2 rounded-full px-3 py-1.5 font-semibold ${
-          printerStepDone
-            ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200'
-            : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-        }`}
-      >
-        <span className="flex size-5 items-center justify-center rounded-full bg-white/80 text-xs dark:bg-black/20">
-          2
-        </span>
-        Guardar en libro
-      </li>
-    </ol>
-  );
-}
-
 export default function NewAnnualInspection({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -266,17 +234,12 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
           Añadir Inspección Anual
         </h1>
         <p className="text-slate-500 dark:text-slate-400">
-          Un solo registro en el libro fiscal: complete los datos, registre la inspección en la
-          impresora y guarde.
+          Registre la inspección anual obligatoria del equipo en el libro fiscal digital.
         </p>
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {printerMqttEligible ? (
-            <AnnualInspectionStepIndicator printerStepDone={mqttCompleted} />
-          ) : null}
-
           <div className="space-y-4">
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
               Inspector Responsable
@@ -336,39 +299,25 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
             </div>
           )}
 
-          <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
-            {printerMqttEligible && !mqttCompleted ? (
-              <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
-                Complete el paso 1 (registrar en impresora) para habilitar el guardado en el libro
-                fiscal.
-              </p>
-            ) : null}
-            <div className="flex items-center justify-end gap-3">
-              <Link
-                href={`/fiscal-book/${id}`}
-                className="px-6 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                Cancelar
-              </Link>
-              <button
-                type="submit"
-                disabled={loading || (printerMqttEligible && !mqttCompleted)}
-                title={
-                  printerMqttEligible && !mqttCompleted
-                    ? 'Complete el paso 1 (impresora) primero'
-                    : undefined
-                }
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-              >
-                {loading
-                  ? 'Guardando…'
-                  : printerMqttEligible && !mqttCompleted
-                    ? 'Paso 2 · Complete el paso 1 primero'
-                    : printerMqttEligible
-                      ? 'Paso 2 · Guardar en libro fiscal'
-                      : 'Guardar en libro fiscal'}
-              </button>
-            </div>
+          <div className="pt-4 flex items-center justify-end gap-3">
+            <Link
+              href={`/fiscal-book/${id}`}
+              className="px-6 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              Cancelar
+            </Link>
+            <button
+              type="submit"
+              disabled={loading || (printerMqttEligible && !mqttCompleted)}
+              title={
+                printerMqttEligible && !mqttCompleted
+                  ? 'Registre primero la inspección en la impresora'
+                  : undefined
+              }
+              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {loading ? 'Guardando...' : 'Guardar Inspección'}
+            </button>
           </div>
         </form>
       </div>

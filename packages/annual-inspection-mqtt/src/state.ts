@@ -227,13 +227,13 @@ export const ANNUAL_INSPECTION_CHECKLIST_ROWS: ReadonlyArray<{
   label: string;
   action?: "test-invoice" | "test-credit-note";
 }> = [
-  { key: "chkPrecinto", label: "Estado del Precinto" },
-  { key: "chkEtiquetaFiscal", label: "Estado de la Etiqueta Fiscal" },
-  { key: "chkFactura", label: "Estado de la Factura", action: "test-invoice" },
+  { key: "chkPrecinto", label: "Precinto en buen estado" },
+  { key: "chkEtiquetaFiscal", label: "Etiqueta fiscal en buen estado" },
+  { key: "chkFactura", label: "Impresión de factura en buen estado", action: "test-invoice" },
   {
     key: "chkNotaCredito",
-    label: "Estado de la Nota de Crédito",
+    label: "Impresión de nota de crédito en buen estado",
     action: "test-credit-note",
   },
-  { key: "chkSensorPapel", label: "Estado Sensor de Papel" },
+  { key: "chkSensorPapel", label: "Sensor de papel en buen estado" },
 ];

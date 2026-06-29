@@ -6,6 +6,11 @@ import {
   type AnnualInspectionChecklistState,
 } from '@/lib/annual-inspection-mqtt-state';
 
+const CHECKBOX_CLASS =
+  'w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer';
+const LABEL_CLASS =
+  'text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none';
+
 type AnnualInspectionChecklistPanelProps = {
   registroImpresora: string;
   numeroFacturaPrueba: number | null;
@@ -48,12 +53,7 @@ export function AnnualInspectionChecklistPanel({
   disabled = false,
 }: AnnualInspectionChecklistPanelProps) {
   return (
-    <div className="space-y-5">
-      <p className="text-sm text-slate-600 dark:text-slate-400">
-        Marque el checklist manualmente o deje que se marque tras pruebas exitosas. El paso 1 usa
-        el estado actual de los cinco checkboxes al registrar en la impresora.
-      </p>
-
+    <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <label className="block min-w-0 flex-1">
           <span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
@@ -63,22 +63,22 @@ export function AnnualInspectionChecklistPanel({
             type="text"
             readOnly
             value={registroImpresora}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm dark:border-slate-800 dark:bg-slate-950"
+            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-sm text-slate-900 dark:text-white"
           />
         </label>
         <button
           type="button"
           onClick={onRefresh}
           disabled={refreshing || disabled}
-          className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium hover:bg-slate-50 disabled:opacity-70 dark:border-slate-800 dark:hover:bg-slate-800"
+          className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-70 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
         >
           {refreshing ? 'Actualizando…' : 'Actualizar'}
         </button>
       </div>
 
       {numeroFacturaPrueba != null ? (
-        <p className="text-sm ml-1">
-          <span className="text-slate-500 dark:text-slate-400">Número de factura de prueba:</span>{' '}
+        <p className="text-sm ml-1 text-slate-600 dark:text-slate-400">
+          <span>Número de factura de prueba:</span>{' '}
           <span className="font-mono font-semibold text-slate-900 dark:text-white">
             {numeroFacturaPrueba}
           </span>
@@ -94,58 +94,59 @@ export function AnnualInspectionChecklistPanel({
           onChange={(event) => onProductDescriptionChange(event.target.value)}
           rows={3}
           disabled={disabled}
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm disabled:opacity-70 dark:border-slate-800 dark:bg-slate-950"
+          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white disabled:opacity-70"
         />
       </label>
 
-      <div>
-        <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-          Checklist reglamentario
-        </p>
-        <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
-          {ANNUAL_INSPECTION_CHECKLIST_ROWS.map((row) => (
-            <li
-              key={row.key}
-              className="flex flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap"
-            >
+      <div className="space-y-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+            Resultados de inspección
+          </p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 ml-1">
+            Marque cada ítem conforme lo verificó en el equipo. Las pruebas de factura y nota de
+            crédito pueden marcar los ítems correspondientes automáticamente.
+          </p>
+        </div>
+
+        {ANNUAL_INSPECTION_CHECKLIST_ROWS.map((row) => (
+          <div key={row.key} className="space-y-2">
+            <div className="flex items-center gap-3">
               <input
                 id={`annual-inspection-${row.key}`}
                 type="checkbox"
                 checked={checklist[row.key]}
                 disabled={disabled}
                 onChange={(event) => onChecklistChange(row.key, event.target.checked)}
-                className="size-4 shrink-0 rounded border-slate-300"
+                className={CHECKBOX_CLASS}
               />
-              <label
-                htmlFor={`annual-inspection-${row.key}`}
-                className="min-w-0 flex-1 cursor-pointer text-sm text-slate-900 dark:text-white"
-              >
+              <label htmlFor={`annual-inspection-${row.key}`} className={LABEL_CLASS}>
                 {row.label}
               </label>
-              {row.action === 'test-invoice' ? (
-                <button
-                  type="button"
-                  onClick={onSendTestInvoice}
-                  disabled={sendingTestInvoice || disabled}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 disabled:opacity-70 dark:border-slate-800 sm:w-auto"
-                >
-                  {sendingTestInvoice ? 'Enviando…' : 'Enviar Factura de Prueba'}
-                </button>
-              ) : null}
-              {row.action === 'test-credit-note' ? (
-                <button
-                  type="button"
-                  onClick={onSendTestCreditNote}
-                  disabled={sendingTestCreditNote || creditNoteDisabled || disabled}
-                  title={creditNoteDisabledReason ?? undefined}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-800 sm:w-auto"
-                >
-                  {sendingTestCreditNote ? 'Enviando…' : 'Enviar Nota de Crédito de Prueba'}
-                </button>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+            </div>
+            {row.action === 'test-invoice' ? (
+              <button
+                type="button"
+                onClick={onSendTestInvoice}
+                disabled={sendingTestInvoice || disabled}
+                className="ml-8 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-70 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                {sendingTestInvoice ? 'Enviando…' : 'Enviar factura de prueba'}
+              </button>
+            ) : null}
+            {row.action === 'test-credit-note' ? (
+              <button
+                type="button"
+                onClick={onSendTestCreditNote}
+                disabled={sendingTestCreditNote || creditNoteDisabled || disabled}
+                title={creditNoteDisabledReason ?? undefined}
+                className="ml-8 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                {sendingTestCreditNote ? 'Enviando…' : 'Enviar nota de crédito de prueba'}
+              </button>
+            ) : null}
+          </div>
+        ))}
       </div>
 
       {error ? (
@@ -157,21 +158,14 @@ export function AnnualInspectionChecklistPanel({
         </p>
       ) : null}
 
-      <div className="border-t border-slate-200 pt-5 dark:border-slate-800">
-        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Paso 1 · Impresora fiscal
-        </p>
-        <button
-          type="button"
-          onClick={onSubmitInspection}
-          disabled={submittingInspection || disabled}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {submittingInspection
-            ? 'Registrando en impresora…'
-            : 'Paso 1 · Registrar en impresora (SetDateRevO)'}
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onSubmitInspection}
+        disabled={submittingInspection || disabled}
+        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:hover:bg-slate-900"
+      >
+        {submittingInspection ? 'Registrando en impresora…' : 'Registrar inspección en impresora'}
+      </button>
     </div>
   );
 }

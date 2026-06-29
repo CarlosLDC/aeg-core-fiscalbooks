@@ -364,11 +364,11 @@ Checklist reglamentario con el estado de cada ítem (Bien, Violentado o Defectuo
 
 | Ítem | Descripción |
 |---|---|
-| Estado del Precinto | Integridad del precinto fiscal |
-| Estado de la Etiqueta Fiscal | Condición de la etiqueta fiscal |
-| Estado de la Factura | Resultado de la prueba de factura |
-| Estado de la Nota de Crédito | Resultado de la prueba de nota de crédito |
-| Estado Sensor de Papel | Funcionamiento del sensor de papel |
+| Precinto en buen estado | Integridad del precinto fiscal |
+| Etiqueta fiscal en buen estado | Condición de la etiqueta fiscal |
+| Impresión de factura en buen estado | Resultado de la prueba de factura |
+| Impresión de nota de crédito en buen estado | Resultado de la prueba de nota de crédito |
+| Sensor de papel en buen estado | Funcionamiento del sensor de papel |
 
 #### Sección 3: Detalles adicionales
 - **Observaciones y Hallazgos**: texto descriptivo con los resultados de la inspección.
@@ -377,10 +377,8 @@ Checklist reglamentario con el estado de cada ítem (Bien, Violentado o Defectuo
 ### 8.3 Crear una Nueva Inspección (Solo Rol Técnico)
 
 1. En la pestaña **Inspecciones**, pulse el botón **"+"**.
-2. Se abrirá un **único formulario** «Añadir Inspección Anual» (una sola tarjeta, sin secciones separadas).
-3. En la parte superior verá el progreso **1. Impresora → 2. Guardar en libro** cuando el equipo aplique para comunicación fiscal.
-
-4. Complete los **datos del registro** (siempre visibles en el mismo formulario):
+2. Se abrirá el formulario **«Añadir Inspección Anual»** en una sola pantalla.
+3. Complete los datos del registro:
 
 | Campo | Tipo | Descripción |
 |---|---|---|
@@ -388,21 +386,19 @@ Checklist reglamentario con el estado de cada ítem (Bien, Violentado o Defectuo
 | Fecha de inspección | Fecha | No puede ser futura |
 | Observaciones / Resultados | Texto | Descripción detallada de hallazgos |
 
-5. **Paso 1 · Impresora** (obligatorio en equipos enajenados con cliente y MAC):
-   - Pulse **«Consultar impresora (StaInf)»** para obtener el registro.
-   - Complete el **checklist reglamentario** (cinco ítems) y, si lo desea, las pruebas opcionales de factura y nota de crédito.
-   - Pulse **«Paso 1 · Registrar en impresora (SetDateRevO)»**.
-   - Al confirmarse en la impresora, el indicador marcará el paso 1 como completado.
+4. En equipos enajenados con cliente y MAC, use la sección **Inspección en impresora**:
+   - **Consultar registro de impresora** para obtener el número fiscal.
+   - Marque los ítems de **Resultados de inspección** (precinto, etiqueta, factura, nota de crédito, sensor de papel en buen estado).
+   - Opcionalmente envíe factura y nota de crédito de prueba.
+   - Pulse **Registrar inspección en impresora** antes de guardar.
 
-6. **Paso 2 · Guardar en libro fiscal**:
-   - Pulse **«Paso 2 · Guardar en libro fiscal»** (habilitado tras el paso 1).
-   - El sistema persiste en una sola fila de base de datos: checklist, observaciones, fecha, inspector y auditoría MQTT.
+5. Pulse **Guardar Inspección**. El sistema persiste checklist, observaciones, fecha, inspector y auditoría Remoto en un solo registro.
 
-> El estado del precinto se determina únicamente desde el checklist («Estado del Precinto»); no hay un campo duplicado.
+> El estado del precinto se determina desde «Precinto en buen estado»; no hay un campo duplicado.
 
 ### 8.4 Validaciones de Inspección
 
-- En equipos con comunicación fiscal, debe completarse el **paso 1 (SetDateRevO)** antes de habilitar el guardado en libro.
+- En equipos con comunicación fiscal, debe registrarse la inspección en la impresora antes de guardar.
 - La fecha de inspección no puede ser futura.
 - Los campos de inspector, fecha y observaciones son obligatorios.
 - Se requiere una sesión activa válida.

@@ -191,11 +191,11 @@ export function AnnualInspectionMqttSection({
           id="annual-inspection-printer-heading"
           className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1"
         >
-          Comunicación con impresora fiscal
+          Inspección en impresora
         </h3>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 ml-1">
-          Consulte StaInf, complete el checklist y registre SetDateRevO en la impresora antes de
-          guardar en el libro.
+          Consulte el registro fiscal, verifique los ítems y registre la inspección anual en el
+          equipo antes de guardar.
         </p>
         <details className="mt-2 ml-1 text-xs text-slate-500 dark:text-slate-400">
           <summary className="cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
@@ -218,7 +218,7 @@ export function AnnualInspectionMqttSection({
 
       {mqttCompleted ? (
         <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200">
-          Impresora actualizada. Ya puede guardar en el libro fiscal.
+          Inspección registrada en la impresora. Ya puede guardar el registro.
         </p>
       ) : null}
 
@@ -236,9 +236,9 @@ export function AnnualInspectionMqttSection({
           type="button"
           onClick={() => void handleStartInspection()}
           disabled={starting}
-          className="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:hover:bg-slate-900"
+          className="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:hover:bg-slate-900"
         >
-          {starting ? 'Consultando impresora…' : 'Consultar impresora (StaInf)'}
+          {starting ? 'Consultando impresora…' : 'Consultar registro de impresora'}
         </button>
       ) : null}
 
