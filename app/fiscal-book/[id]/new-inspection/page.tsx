@@ -95,7 +95,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
     setError(null);
 
     try {
-      if (!mqttCompleted) {
+      if (!mqttCompleted || !mqttCompletion) {
         throw new Error(
           'Debe completar la inspección anual obligatoria en la impresora (SetDateRevO) antes de guardar en el libro fiscal.',
         );
@@ -123,9 +123,9 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
         notes: observaciones || null,
         photoUrls: [],
         inspectionDate: fechaInspeccion,
-        mqttRegistroImpresora: mqttCompletion?.registroImpresora ?? null,
-        mqttSetDateRevOAt: mqttCompletion?.mqttSetDateRevOTimestamp ?? null,
-        mqttNumeroFacturaPrueba: mqttCompletion?.numeroFacturaPrueba ?? null,
+        mqttRegistroImpresora: mqttCompletion.registroImpresora ?? null,
+        mqttSetDateRevOAt: mqttCompletion.mqttSetDateRevOTimestamp ?? null,
+        mqttNumeroFacturaPrueba: mqttCompletion.numeroFacturaPrueba ?? null,
         ...persistedChecklist,
       });
 
