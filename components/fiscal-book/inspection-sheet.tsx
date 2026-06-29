@@ -1,9 +1,11 @@
 import type { AnnualInspection, FiscalPrinter } from '@/lib/types';
 import { NoData } from '@/components/no-data';
 import {
+  annualInspectionChecklistRows,
   formatMqttSetDateRevOAt,
+  hasAnnualInspectionChecklistDisplay,
   hasAnnualInspectionMqttAudit,
-} from '@/lib/annual-inspection-mqtt-display';
+} from '@/lib/annual-inspection-checklist-display';
 
 export function SingleInspectionSheet({ inspection }: { inspection: AnnualInspection; printer: FiscalPrinter }) {
   return (
@@ -32,8 +34,32 @@ export function SingleInspectionSheet({ inspection }: { inspection: AnnualInspec
         </div>
       </section>
 
+      {hasAnnualInspectionChecklistDisplay(inspection) ? (
+        <section>
+          <h2 className="text-[11px] uppercase tracking-widest font-black text-slate-900 dark:text-white mb-6 pb-2 border-b border-slate-100 dark:border-slate-900">
+            2. RESULTADOS DE LA INSPECCIÓN
+          </h2>
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-6 border border-slate-100 dark:border-slate-900 transition-colors">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {annualInspectionChecklistRows(inspection).map((row) => (
+                <div key={row.label}>
+                  <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">
+                    {row.label}
+                  </label>
+                  <p className="text-slate-900 dark:text-white font-black uppercase text-xs tracking-tight">
+                    {row.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section>
-        <h2 className="text-[11px] uppercase tracking-widest font-black text-slate-900 dark:text-white mb-6 pb-2 border-b border-slate-100 dark:border-slate-900">2. DETALLES DE LA INSPECCIÓN</h2>
+        <h2 className="text-[11px] uppercase tracking-widest font-black text-slate-900 dark:text-white mb-6 pb-2 border-b border-slate-100 dark:border-slate-900">
+          {hasAnnualInspectionChecklistDisplay(inspection) ? '3' : '2'}. OBSERVACIONES
+        </h2>
         <div className="bg-slate-50 dark:bg-slate-900/50 p-6 border border-slate-100 dark:border-slate-900 transition-colors">
           <div>
             <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Observaciones y Hallazgos</label>
@@ -47,7 +73,7 @@ export function SingleInspectionSheet({ inspection }: { inspection: AnnualInspec
       {hasAnnualInspectionMqttAudit(inspection) ? (
         <section>
           <h2 className="text-[11px] uppercase tracking-widest font-black text-slate-900 dark:text-white mb-6 pb-2 border-b border-slate-100 dark:border-slate-900">
-            3. REGISTRO MQTT EN IMPRESORA
+            {hasAnnualInspectionChecklistDisplay(inspection) ? '4' : '3'}. REGISTRO MQTT EN IMPRESORA
           </h2>
           <div className="bg-slate-50 dark:bg-slate-900/50 p-6 border border-slate-100 dark:border-slate-900 transition-colors">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

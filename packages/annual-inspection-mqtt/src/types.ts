@@ -63,6 +63,15 @@ export type AnnualInspectionChecklistState = Record<
   boolean
 >;
 
+/** Checklist almacenado en inspecciones_anuales (null = legacy sin dato). */
+export type AnnualInspectionChecklistPersisted = {
+  chkPrecinto: boolean | null;
+  chkEtiquetaFiscal: boolean | null;
+  chkFactura: boolean | null;
+  chkNotaCredito: boolean | null;
+  chkSensorPapel: boolean | null;
+};
+
 export type AnnualInspectionMqttFlowState = {
   registroImpresora: string;
   fiscalSerial: string;

@@ -359,29 +359,49 @@ Se muestra un modal de confirmación con dos opciones:
 | Fecha de Inspección | Fecha de la inspección |
 | Inspector Actuante | Nombre del inspector |
 
-#### Sección 2: Detalles de la Inspección
+#### Sección 2: Resultados de inspección
+Checklist reglamentario con el estado de cada ítem (Bien, Violentado o Defectuoso según corresponda):
+
+| Ítem | Descripción |
+|---|---|
+| Estado del Precinto | Integridad del precinto fiscal |
+| Estado de la Etiqueta Fiscal | Condición de la etiqueta fiscal |
+| Estado de la Factura | Resultado de la prueba de factura |
+| Estado de la Nota de Crédito | Resultado de la prueba de nota de crédito |
+| Estado Sensor de Papel | Funcionamiento del sensor de papel |
+
+#### Sección 3: Detalles adicionales
 - **Observaciones y Hallazgos**: texto descriptivo con los resultados de la inspección.
+- **Auditoría MQTT** (si aplica): registro de impresora, fecha SetDateRevO y número de factura de prueba.
 
 ### 8.3 Crear una Nueva Inspección (Solo Rol Técnico)
 
 1. En la pestaña **Inspecciones**, pulse el botón **"+"**.
-2. Se abrirá el formulario **"Añadir Inspección Anual"**.
+2. Se abrirá el formulario **"Añadir Inspección Anual"** en una sola pantalla (sin modal).
 3. Campos automáticos:
    - **Inspector Responsable**: su nombre y cédula.
    - **Sucursal / empresa**: según el directorio de empleados.
 
-4. Complete los campos obligatorios:
+4. Complete el **ritual MQTT inline** (obligatorio antes de guardar):
+   - **StaInf**: obtiene el registro de la impresora.
+   - **Checklist reglamentario**: marque cada ítem como conforme (Bien) o no conforme.
+   - **Pruebas opcionales**: factura y nota de crédito de prueba (pueden marcar automáticamente los ítems correspondientes).
+   - **SetDateRevO**: envía la inspección anual obligatoria a la impresora fiscal.
+
+5. Complete los campos del **registro en libro**:
 
 | Campo | Tipo | Descripción |
 |---|---|---|
 | Fecha de inspección | Fecha | No puede ser futura |
 | Observaciones / Resultados | Texto | Descripción detallada de hallazgos |
-| ¿Precinto violentado? | Casilla | Marque si el precinto fue encontrado violentado |
 
-5. Pulse **"Guardar Inspección"**.
+> El estado del precinto se determina únicamente desde el checklist («Estado del Precinto»); no hay un campo duplicado en el formulario inferior.
+
+6. Pulse **"Guardar Inspección"**. El sistema persiste el checklist completo junto con los datos MQTT de auditoría.
 
 ### 8.4 Validaciones de Inspección
 
+- Debe completarse **SetDateRevO** en la impresora antes de guardar en el libro fiscal.
 - La fecha de inspección no puede ser futura.
 - Los campos de inspector y fecha son obligatorios.
 - Se requiere una sesión activa válida.

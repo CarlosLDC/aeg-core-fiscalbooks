@@ -8,6 +8,11 @@ export type AnnualInspectionRequest = {
   mqttRegistroImpresora?: string | null;
   mqttSetDateRevOAt?: number | null;
   mqttNumeroFacturaPrueba?: number | null;
+  chkPrecinto?: boolean | null;
+  chkEtiquetaFiscal?: boolean | null;
+  chkFactura?: boolean | null;
+  chkNotaCredito?: boolean | null;
+  chkSensorPapel?: boolean | null;
 };
 
 export type AnnualInspectionResponse = {
@@ -22,4 +27,9 @@ export type AnnualInspectionResponse = {
   mqttRegistroImpresora?: string | null;
   mqttSetDateRevOAt?: number | null;
   mqttNumeroFacturaPrueba?: number | null;
+  chkPrecinto?: boolean | null;
+  chkEtiquetaFiscal?: boolean | null;
+  chkFactura?: boolean | null;
+  chkNotaCredito?: boolean | null;
+  chkSensorPapel?: boolean | null;
 };

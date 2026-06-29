@@ -133,4 +133,9 @@ export type FiscalBookAnnualInspectionResponse = {
   mqttRegistroImpresora?: string | null;
   mqttSetDateRevOAt?: number | null;
   mqttNumeroFacturaPrueba?: number | null;
+  chkPrecinto?: boolean | null;
+  chkEtiquetaFiscal?: boolean | null;
+  chkFactura?: boolean | null;
+  chkNotaCredito?: boolean | null;
+  chkSensorPapel?: boolean | null;
 };

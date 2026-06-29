@@ -7,7 +7,11 @@ import { AnnualInspectionMqttSection } from '@/components/fiscal-book/annual-ins
 import { useUserProfile } from '@/app/layout';
 import { canCreateAnnualInspection } from '@/lib/fiscal-permissions';
 import { resolveAnnualInspectionActor } from '@/lib/field-actor-resolver';
-import { isPrinterEligibleForAnnualInspectionMqtt } from '@/lib/annual-inspection-mqtt-state';
+import {
+  checklistToPersisted,
+  checklistToSealTampered,
+  isPrinterEligibleForAnnualInspectionMqtt,
+} from '@/lib/annual-inspection-mqtt-state';
 import type { AnnualInspectionMqttCompletion } from '@/lib/annual-inspection-mqtt-state';
 import { printerService } from '@/lib/printer-service';
 import { createAnnualInspection } from '@/lib/annual-inspections-api';
@@ -35,7 +39,6 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
   const [inspectorInfo, setInspectorInfo] = useState<InspectorInfo | null>(null);
 
   const [observaciones, setObservaciones] = useState('');
-  const [precintoViolentado, setPrecintoViolentado] = useState(false);
   const [fechaInspeccion, setFechaInspeccion] = useState('');
 
   const [successOpen, setSuccessOpen] = useState(false);
@@ -110,16 +113,20 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
         throw new Error('La fecha de inspección no puede ser futura.');
       }
 
+      const checklist = mqttCompletion.checklist;
+      const persistedChecklist = checklistToPersisted(checklist);
+
       const created = await createAnnualInspection({
         printerId: cleanPrinterId,
         userId: inspectorInfo.userId,
-        sealTampered: precintoViolentado,
+        sealTampered: checklistToSealTampered(checklist),
         notes: observaciones || null,
         photoUrls: [],
         inspectionDate: fechaInspeccion,
         mqttRegistroImpresora: mqttCompletion?.registroImpresora ?? null,
         mqttSetDateRevOAt: mqttCompletion?.mqttSetDateRevOTimestamp ?? null,
         mqttNumeroFacturaPrueba: mqttCompletion?.numeroFacturaPrueba ?? null,
+        ...persistedChecklist,
       });
 
       setSuccessRecordId(String(created.id));
@@ -239,7 +246,6 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
             onMqttCompleted={(completion: AnnualInspectionMqttCompletion) => {
               setMqttCompleted(true);
               setMqttCompletion(completion);
-              setPrecintoViolentado(!completion.checklist.chkPrecinto);
             }}
           />
         </div>
@@ -286,19 +292,6 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
               value={observaciones}
               onChange={(e) => setObservaciones(e.target.value)}
             />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="precinto_violentado"
-              className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer"
-              checked={precintoViolentado}
-              onChange={(e) => setPrecintoViolentado(e.target.checked)}
-            />
-            <label htmlFor="precinto_violentado" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-              ¿Se encontró el precinto violentado?
-            </label>
           </div>
 
           {error && (

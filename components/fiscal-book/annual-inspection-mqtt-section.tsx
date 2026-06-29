@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AnnualInspectionMqttModal } from '@/components/fiscal-book/annual-inspection-mqtt-modal';
+import { AnnualInspectionChecklistPanel } from '@/components/fiscal-book/annual-inspection-checklist-panel';
 import {
   getAnnualInspectionMqttErrorMessage,
   requestAnnualInspectionStaInf,
@@ -25,7 +25,6 @@ import {
   creditNoteDisabledReason,
   emptyAnnualInspectionChecklist,
   type AnnualInspectionChecklistKey,
-  type AnnualInspectionChecklistState,
   type AnnualInspectionMqttCompletion,
   type AnnualInspectionMqttFlowState,
 } from '@/lib/annual-inspection-mqtt-state';
@@ -38,12 +37,10 @@ type AnnualInspectionMqttSectionProps = {
 
 export function AnnualInspectionMqttSection({
   printerId,
-  fiscalSerial,
   onMqttCompleted,
 }: AnnualInspectionMqttSectionProps) {
   const [flow, setFlow] = useState<AnnualInspectionMqttFlowState | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalError, setModalError] = useState<string | null>(null);
+  const [sectionError, setSectionError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [sendingTestInvoice, setSendingTestInvoice] = useState(false);
@@ -53,7 +50,7 @@ export function AnnualInspectionMqttSection({
 
   async function refreshRegistration() {
     setRefreshing(true);
-    setModalError(null);
+    setSectionError(null);
     try {
       const result = await requestAnnualInspectionStaInf({ printerId });
       setFlow((current) =>
@@ -71,7 +68,7 @@ export function AnnualInspectionMqttSection({
             }),
       );
     } catch (err) {
-      setModalError(getAnnualInspectionMqttErrorMessage(err));
+      setSectionError(getAnnualInspectionMqttErrorMessage(err));
       throw err;
     } finally {
       setRefreshing(false);
@@ -80,10 +77,9 @@ export function AnnualInspectionMqttSection({
 
   async function handleStartInspection() {
     setStarting(true);
-    setModalError(null);
+    setSectionError(null);
     setMqttCompleted(false);
     setFlow(null);
-    setModalOpen(false);
 
     try {
       const result = await requestAnnualInspectionStaInf({ printerId });
@@ -95,9 +91,8 @@ export function AnnualInspectionMqttSection({
           productDescription: ANNUAL_INSPECTION_DEFAULT_PRODUCT,
         }),
       );
-      setModalOpen(true);
     } catch (err) {
-      setModalError(getAnnualInspectionMqttErrorMessage(err));
+      setSectionError(getAnnualInspectionMqttErrorMessage(err));
     } finally {
       setStarting(false);
     }
@@ -117,7 +112,7 @@ export function AnnualInspectionMqttSection({
   async function handleSendTestInvoice() {
     if (!flow) return;
     setSendingTestInvoice(true);
-    setModalError(null);
+    setSectionError(null);
     try {
       const result = await requestAnnualInspectionTestInvoice({
         printerId: flow.printerId,
@@ -128,7 +123,7 @@ export function AnnualInspectionMqttSection({
       );
     } catch (err) {
       setFlow((current) => (current ? applyFailedTestInvoice(current) : current));
-      setModalError(getAnnualInspectionMqttErrorMessage(err));
+      setSectionError(getAnnualInspectionMqttErrorMessage(err));
     } finally {
       setSendingTestInvoice(false);
     }
@@ -137,7 +132,7 @@ export function AnnualInspectionMqttSection({
   async function handleSendTestCreditNote() {
     if (!flow) return;
     setSendingTestCreditNote(true);
-    setModalError(null);
+    setSectionError(null);
     try {
       if (flow.numeroFacturaPrueba == null) {
         throw new Error('Primero envíe la factura de prueba para obtener el número de factura.');
@@ -154,7 +149,7 @@ export function AnnualInspectionMqttSection({
       setFlow((current) => (current ? applySuccessfulTestCreditNote(current) : current));
     } catch (err) {
       setFlow((current) => (current ? applyFailedTestCreditNote(current) : current));
-      setModalError(getAnnualInspectionMqttErrorMessage(err));
+      setSectionError(getAnnualInspectionMqttErrorMessage(err));
     } finally {
       setSendingTestCreditNote(false);
     }
@@ -163,7 +158,7 @@ export function AnnualInspectionMqttSection({
   async function handleSubmitInspection() {
     if (!flow) return;
     setSubmittingInspection(true);
-    setModalError(null);
+    setSectionError(null);
     try {
       const result = await submitAnnualInspectionMqtt({
         printerId: flow.printerId,
@@ -180,16 +175,15 @@ export function AnnualInspectionMqttSection({
         numeroFacturaPrueba: flow.numeroFacturaPrueba,
         mqttSetDateRevOTimestamp: result.dataTimestamp,
       });
-      setModalOpen(false);
     } catch (err) {
-      setModalError(getAnnualInspectionMqttErrorMessage(err));
+      setSectionError(getAnnualInspectionMqttErrorMessage(err));
     } finally {
       setSubmittingInspection(false);
     }
   }
 
   return (
-    <section className="space-y-3 rounded-2xl border border-blue-200 bg-blue-50/60 p-5 dark:border-blue-900/40 dark:bg-blue-950/20">
+    <section className="space-y-4 rounded-2xl border border-blue-200 bg-blue-50/60 p-5 dark:border-blue-900/40 dark:bg-blue-950/20">
       <div>
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">
           Inspección anual obligatoria (Remoto)
@@ -219,47 +213,49 @@ export function AnnualInspectionMqttSection({
         </p>
       ) : null}
 
-      {modalError && !modalOpen ? (
+      {sectionError && !flow ? (
         <p
           role="alert"
           className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300"
         >
-          {modalError}
+          {sectionError}
         </p>
       ) : null}
 
-      <button
-        type="button"
-        onClick={() => void handleStartInspection()}
-        disabled={starting || mqttCompleted}
-        className="flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {starting ? 'Consultando impresora…' : 'Inspección Anual Obligatoria'}
-      </button>
+      {!flow && !mqttCompleted ? (
+        <button
+          type="button"
+          onClick={() => void handleStartInspection()}
+          disabled={starting}
+          className="flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {starting ? 'Consultando impresora…' : 'Inspección Anual Obligatoria'}
+        </button>
+      ) : null}
 
-      <AnnualInspectionMqttModal
-        open={modalOpen && flow != null}
-        registroImpresora={flow?.registroImpresora ?? ''}
-        numeroFacturaPrueba={flow?.numeroFacturaPrueba ?? null}
-        productDescription={flow?.productDescription ?? ''}
-        onProductDescriptionChange={(value) =>
-          setFlow((current) => (current ? applyProductDescriptionChange(current, value) : current))
-        }
-        checklist={flow?.checklist ?? emptyAnnualInspectionChecklist()}
-        onChecklistChange={handleChecklistChange}
-        onRefresh={() => void refreshRegistration()}
-        refreshing={refreshing}
-        onSendTestInvoice={() => void handleSendTestInvoice()}
-        sendingTestInvoice={sendingTestInvoice}
-        onSendTestCreditNote={() => void handleSendTestCreditNote()}
-        sendingTestCreditNote={sendingTestCreditNote}
-        creditNoteDisabled={flow == null || !canSendAnnualInspectionTestCreditNote(flow)}
-        creditNoteDisabledReason={creditNoteDisabledReason(flow)}
-        onSubmitInspection={() => void handleSubmitInspection()}
-        submittingInspection={submittingInspection}
-        error={modalError}
-        onClose={() => setModalOpen(false)}
-      />
+      {flow && !mqttCompleted ? (
+        <AnnualInspectionChecklistPanel
+          registroImpresora={flow.registroImpresora}
+          numeroFacturaPrueba={flow.numeroFacturaPrueba}
+          productDescription={flow.productDescription}
+          onProductDescriptionChange={(value) =>
+            setFlow((current) => (current ? applyProductDescriptionChange(current, value) : current))
+          }
+          checklist={flow.checklist}
+          onChecklistChange={handleChecklistChange}
+          onRefresh={() => void refreshRegistration()}
+          refreshing={refreshing}
+          onSendTestInvoice={() => void handleSendTestInvoice()}
+          sendingTestInvoice={sendingTestInvoice}
+          onSendTestCreditNote={() => void handleSendTestCreditNote()}
+          sendingTestCreditNote={sendingTestCreditNote}
+          creditNoteDisabled={!canSendAnnualInspectionTestCreditNote(flow)}
+          creditNoteDisabledReason={creditNoteDisabledReason(flow)}
+          onSubmitInspection={() => void handleSubmitInspection()}
+          submittingInspection={submittingInspection}
+          error={sectionError}
+        />
+      ) : null}
     </section>
   );
 }

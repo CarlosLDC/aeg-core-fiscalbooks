@@ -337,6 +337,17 @@ function mapAnnualInspection(i: FiscalBookAnnualInspectionResponse): AnnualInspe
       pickNumber(i, 'mqttNumeroFacturaPrueba', 'mqtt_numero_factura_prueba') ??
       i.mqttNumeroFacturaPrueba ??
       null,
+    chkPrecinto:
+      pickBoolean(i, 'chkPrecinto', 'chk_precinto') ?? i.chkPrecinto ?? null,
+    chkEtiquetaFiscal:
+      pickBoolean(i, 'chkEtiquetaFiscal', 'chk_etiqueta_fiscal') ??
+      i.chkEtiquetaFiscal ??
+      null,
+    chkFactura: pickBoolean(i, 'chkFactura', 'chk_factura') ?? i.chkFactura ?? null,
+    chkNotaCredito:
+      pickBoolean(i, 'chkNotaCredito', 'chk_nota_credito') ?? i.chkNotaCredito ?? null,
+    chkSensorPapel:
+      pickBoolean(i, 'chkSensorPapel', 'chk_sensor_papel') ?? i.chkSensorPapel ?? null,
   };
 }
 
