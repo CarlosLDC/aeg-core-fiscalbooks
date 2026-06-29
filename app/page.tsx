@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUserProfile } from '@/app/layout';
 import { NoData } from '@/components/no-data';
-import { SearchIcon, ArrowRight } from '@/components/icons';
+import { printerEstatusBadgeClass, printerEstatusLabel } from '@/lib/printer-status';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50] as const;
 const PAGE_SIZE_STORAGE_KEY = 'aeg-search-page-size';
@@ -348,15 +348,8 @@ export default function SearchPage() {
 
                       <div className="flex flex-row items-center justify-between md:justify-end w-full md:w-auto gap-4 mt-2 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
                         {/* Status Badge mapping for real DB values */}
-                        <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full border ${printer.estatus === 'asignada'
-                          ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/30'
-                          : printer.estatus === 'laboratorio'
-                            ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/30'
-                            : printer.estatus === 'sin_asignar'
-                              ? 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                              : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/30'
-                          }`}>
-                          {printer.estatus.replace('_', ' ')}
+                        <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full border ${printerEstatusBadgeClass(printer.estatus)}`}>
+                          {printerEstatusLabel(printer.estatus)}
                         </span>
                         <div className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:border-blue-100 dark:group-hover:border-blue-800/50 transition-all shrink-0">
                           <ArrowRight size={20} />

@@ -14,4 +14,12 @@ export type AnnualInspectionResponse = {
   id: number;
   printerId: number;
   userId: number;
+  sealTampered: boolean;
+  notes: string | null;
+  createdAt: string;
+  photoUrls: string[];
+  inspectionDate: string;
+  mqttRegistroImpresora?: string | null;
+  mqttSetDateRevOAt?: number | null;
+  mqttNumeroFacturaPrueba?: number | null;
 };

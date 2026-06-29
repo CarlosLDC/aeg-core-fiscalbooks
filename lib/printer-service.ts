@@ -325,6 +325,18 @@ function mapAnnualInspection(i: FiscalBookAnnualInspectionResponse): AnnualInspe
     startTime: null,
     endTime: null,
     urlFotos: photoUrls,
+    mqttRegistroImpresora:
+      pickString(i, 'mqttRegistroImpresora', 'mqtt_registro_impresora') ??
+      i.mqttRegistroImpresora ??
+      null,
+    mqttSetDateRevOAt:
+      pickNumber(i, 'mqttSetDateRevOAt', 'mqtt_set_date_rev_o_at') ??
+      i.mqttSetDateRevOAt ??
+      null,
+    mqttNumeroFacturaPrueba:
+      pickNumber(i, 'mqttNumeroFacturaPrueba', 'mqtt_numero_factura_prueba') ??
+      i.mqttNumeroFacturaPrueba ??
+      null,
   };
 }
 

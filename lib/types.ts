@@ -1,3 +1,5 @@
+import type { PrinterEstatus } from '@/lib/printer-status';
+
 export type EstatusPrecinto = 'disponible' | 'en_impresora' | 'sustituido';
 
 export interface Precinto {
@@ -93,6 +95,9 @@ export interface AnnualInspection {
   pdfUrl?: string;
   startTime?: string | null;
   endTime?: string | null;
+  mqttRegistroImpresora?: string | null;
+  mqttSetDateRevOAt?: number | null;
+  mqttNumeroFacturaPrueba?: number | null;
 }
 
 export interface PrinterModel {
@@ -127,7 +132,7 @@ export interface FiscalPrinter {
   id_software: string | null;
   id_firmware: string | null;
   serial_fiscal: string;
-  estatus: 'laboratorio' | 'asignada' | 'sin_asignar' | 'enajenada';
+  estatus: PrinterEstatus | string;
   precio_venta_final: number | null;
   se_pago: boolean | null;
   registro_fiscal?: string | null;
