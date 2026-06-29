@@ -6,10 +6,10 @@ import {
   type AnnualInspectionChecklistState,
 } from '@/lib/annual-inspection-mqtt-state';
 
-const RADIO_CLASS =
-  'w-4 h-4 text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer';
-const OPTION_LABEL_CLASS =
-  'text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none';
+const CHECKBOX_CLASS =
+  'w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer';
+const LABEL_CLASS =
+  'text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none';
 
 type AnnualInspectionChecklistPanelProps = {
   numeroFacturaPrueba: number | null;
@@ -70,42 +70,24 @@ export function AnnualInspectionChecklistPanel({
         />
       </label>
 
-      <div className="space-y-5">
-        <div>
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-            Resultados de inspección
-          </p>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 ml-1">
-            Seleccione el resultado verificado para cada ítem. Las pruebas de factura y nota de
-            crédito pueden marcar automáticamente el resultado favorable.
-          </p>
-        </div>
+      <div className="space-y-4">
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+          Resultados de inspección
+        </p>
 
         {ANNUAL_INSPECTION_CHECKLIST_ROWS.map((row) => (
-          <fieldset key={row.key} disabled={disabled} className="space-y-2">
-            <legend className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-              {row.title}
-            </legend>
-            <div className="ml-1 space-y-2">
-              <label className="flex items-center gap-3">
-                <input
-                  type="radio"
-                  name={`annual-inspection-${row.key}`}
-                  checked={checklist[row.key]}
-                  onChange={() => onChecklistChange(row.key, true)}
-                  className={RADIO_CLASS}
-                />
-                <span className={OPTION_LABEL_CLASS}>{row.okLabel}</span>
-              </label>
-              <label className="flex items-center gap-3">
-                <input
-                  type="radio"
-                  name={`annual-inspection-${row.key}`}
-                  checked={!checklist[row.key]}
-                  onChange={() => onChecklistChange(row.key, false)}
-                  className={RADIO_CLASS}
-                />
-                <span className={OPTION_LABEL_CLASS}>{row.notOkLabel}</span>
+          <div key={row.key} className="space-y-2">
+            <div className="flex items-center gap-3">
+              <input
+                id={`annual-inspection-${row.key}`}
+                type="checkbox"
+                checked={checklist[row.key]}
+                disabled={disabled}
+                onChange={(event) => onChecklistChange(row.key, event.target.checked)}
+                className={CHECKBOX_CLASS}
+              />
+              <label htmlFor={`annual-inspection-${row.key}`} className={LABEL_CLASS}>
+                {row.title}
               </label>
             </div>
             {row.action === 'test-invoice' ? (
@@ -129,7 +111,7 @@ export function AnnualInspectionChecklistPanel({
                 {sendingTestCreditNote ? 'Enviando…' : 'Enviar nota de crédito de prueba'}
               </button>
             ) : null}
-          </fieldset>
+          </div>
         ))}
       </div>
 
