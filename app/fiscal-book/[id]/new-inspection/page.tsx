@@ -220,7 +220,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
           Añadir Inspección Anual
         </h1>
         <p className="text-slate-500 dark:text-slate-400">
-          Complete la inspección MQTT en la impresora y luego registre la revisión en el libro
+          Complete la inspección Remoto en la impresora y luego registre la revisión en el libro
           fiscal.
         </p>
       </div>
@@ -228,7 +228,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
       {!isPrinterEligibleForAnnualInspectionMqtt(printer) ? (
         <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
           Este equipo no está enajenado, no tiene cliente asignado o le faltan serial/MAC
-          configurados. La inspección anual MQTT solo aplica a impresoras enajenadas con cliente
+          configurados. La inspección anual Remoto solo aplica a impresoras enajenadas con cliente
           y conectividad fiscal.
         </div>
       ) : (

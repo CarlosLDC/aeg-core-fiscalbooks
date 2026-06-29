@@ -192,7 +192,7 @@ export function AnnualInspectionMqttSection({
     <section className="space-y-3 rounded-2xl border border-blue-200 bg-blue-50/60 p-5 dark:border-blue-900/40 dark:bg-blue-950/20">
       <div>
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-          Inspección anual obligatoria (MQTT)
+          Inspección anual obligatoria (Remoto)
         </h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           Paso 1: consulta StaInf en la impresora. Pasos 2–5: checklist, pruebas fiscales y
