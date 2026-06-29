@@ -59,12 +59,12 @@ export function AnnualInspectionChecklistPanel({
 
       <label className="block">
         <span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-          Descripción de producto (des01)
+          Producto de prueba
         </span>
-        <textarea
+        <input
+          type="text"
           value={productDescription}
           onChange={(event) => onProductDescriptionChange(event.target.value)}
-          rows={3}
           disabled={disabled}
           className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white disabled:opacity-70"
         />
