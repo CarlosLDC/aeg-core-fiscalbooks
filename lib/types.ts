@@ -122,6 +122,7 @@ export interface FiscalPrinter {
   id_modelo_impresora: string;
   id_sucursal: string | null;
   id_distribuidor: string | null;
+  id_cliente: number | null;
   id_compra: string | null;
   id_software: string | null;
   id_firmware: string | null;

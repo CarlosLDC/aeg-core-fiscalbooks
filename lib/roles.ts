@@ -64,6 +64,12 @@ export function canRegistrarServiciosEInspecciones(
   return isTecnico(profile);
 }
 
+export function canAccessFiscalBookMqttTests(
+  profile: PerfilApp | null | undefined,
+): boolean {
+  return isAdmin(profile);
+}
+
 export function rolUsuarioLabel(rol: RolUsuario | null | undefined): string | null {
   switch (rol) {
     case 'admin':
