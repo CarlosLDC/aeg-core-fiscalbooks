@@ -4,7 +4,6 @@ import { useState, use, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useUserProfile } from '@/app/layout';
 import { canCreateAnnualInspection, canCreateTechnicalService } from '@/lib/fiscal-permissions';
-import { canAccessFiscalBookMqttTests } from '@/lib/roles';
 import { FiscalPrinter, TechnicalReview, AnnualInspection } from '@/lib/types';
 import { printerService } from '@/lib/printer-service';
 import { truncateVersion, getActiveSealSerial, formatRegistroCreado } from '@/lib/fiscal-helpers';
@@ -661,17 +660,6 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                 </div>
             ) : <div />}
             
-            <div className="flex items-center shrink-0 gap-2">
-            {canAccessFiscalBookMqttTests(profile) && (
-                <Link
-                    href={`/fiscal-book/${id}/mqtt-tests`}
-                    className="hidden sm:inline-flex items-center h-7 px-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wide transition-colors text-violet-600 dark:text-violet-400 hover:bg-white dark:hover:bg-slate-700 border border-violet-200/60 dark:border-violet-800/60"
-                    title="Pruebas MQTT (administrador)"
-                >
-                    MQTT
-                </Link>
-            )}
-
             {/* Actions (Add/Download) - Hidden in 'Inf. Base' as requested */}
             {viewMode !== 'info' && (
                 <div className="flex items-center shrink-0 bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm group/actions">
@@ -715,7 +703,6 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                     </button>
                 </div>
             )}
-            </div>
         </div>
     );
 
