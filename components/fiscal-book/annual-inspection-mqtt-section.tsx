@@ -10,10 +10,6 @@ import {
   submitAnnualInspectionMqtt,
 } from '@/lib/annual-inspection-mqtt-api';
 import {
-  FISCAL_MQTT_COMANDO_RESPUESTA_GUIDE,
-  FISCAL_MQTT_TOPIC_SUFFIX,
-} from '@/lib/fiscal-mqtt-topics';
-import {
   ANNUAL_INSPECTION_DEFAULT_PRODUCT,
   applyFailedTestCreditNote,
   applyFailedTestInvoice,
@@ -182,40 +178,7 @@ export function AnnualInspectionMqttSection({
   }
 
   return (
-    <section
-      aria-labelledby="annual-inspection-printer-heading"
-      className="space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800"
-    >
-      <div>
-        <h3
-          id="annual-inspection-printer-heading"
-          className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1"
-        >
-          Inspección en impresora
-        </h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 ml-1">
-          Consulte el registro fiscal, verifique los ítems y registre la inspección anual en el
-          equipo antes de guardar.
-        </p>
-        <details className="mt-2 ml-1 text-xs text-slate-500 dark:text-slate-400">
-          <summary className="cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
-            Detalles técnicos MQTT
-          </summary>
-          <p className="mt-2">
-            {FISCAL_MQTT_COMANDO_RESPUESTA_GUIDE}{' '}
-            <span className="font-mono">
-              /{'{mac}'}
-              {FISCAL_MQTT_TOPIC_SUFFIX.COMANDO}
-            </span>
-            {' · '}
-            <span className="font-mono">
-              /{'{mac}'}
-              {FISCAL_MQTT_TOPIC_SUFFIX.RESPUESTA}
-            </span>
-          </p>
-        </details>
-      </div>
-
+    <section className="space-y-4">
       {mqttCompleted ? (
         <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200">
           Inspección registrada en la impresora. Ya puede guardar el registro.
