@@ -23,7 +23,6 @@ import {
   canSendAnnualInspectionTestCreditNote,
   createAnnualInspectionMqttFlowState,
   creditNoteDisabledReason,
-  emptyAnnualInspectionChecklist,
   type AnnualInspectionChecklistKey,
   type AnnualInspectionMqttCompletion,
   type AnnualInspectionMqttFlowState,
@@ -183,40 +182,50 @@ export function AnnualInspectionMqttSection({
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border border-blue-200 bg-blue-50/60 p-5 dark:border-blue-900/40 dark:bg-blue-950/20">
+    <section
+      aria-labelledby="annual-inspection-printer-heading"
+      className="space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800"
+    >
       <div>
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-          Inspección anual obligatoria (Remoto)
-        </h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Paso 1: consulta StaInf en la impresora. Pasos 2–5: checklist, pruebas fiscales y
-          SetDateRevO en la impresora.
+        <h3
+          id="annual-inspection-printer-heading"
+          className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1"
+        >
+          Comunicación con impresora fiscal
+        </h3>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 ml-1">
+          Consulte StaInf, complete el checklist y registre SetDateRevO en la impresora antes de
+          guardar en el libro.
         </p>
-        <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
-          {FISCAL_MQTT_COMANDO_RESPUESTA_GUIDE}{' '}
-          <span className="font-mono">
-            /{'{mac}'}
-            {FISCAL_MQTT_TOPIC_SUFFIX.COMANDO}
-          </span>
-          {' · '}
-          <span className="font-mono">
-            /{'{mac}'}
-            {FISCAL_MQTT_TOPIC_SUFFIX.RESPUESTA}
-          </span>
-        </p>
+        <details className="mt-2 ml-1 text-xs text-slate-500 dark:text-slate-400">
+          <summary className="cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+            Detalles técnicos MQTT
+          </summary>
+          <p className="mt-2">
+            {FISCAL_MQTT_COMANDO_RESPUESTA_GUIDE}{' '}
+            <span className="font-mono">
+              /{'{mac}'}
+              {FISCAL_MQTT_TOPIC_SUFFIX.COMANDO}
+            </span>
+            {' · '}
+            <span className="font-mono">
+              /{'{mac}'}
+              {FISCAL_MQTT_TOPIC_SUFFIX.RESPUESTA}
+            </span>
+          </p>
+        </details>
       </div>
 
       {mqttCompleted ? (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200">
-          Inspección registrada en la impresora fiscal. Complete el formulario del libro y
-          guarde el registro.
+        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200">
+          Impresora actualizada. Ya puede guardar en el libro fiscal.
         </p>
       ) : null}
 
       {sectionError && !flow ? (
         <p
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300"
         >
           {sectionError}
         </p>
@@ -227,9 +236,9 @@ export function AnnualInspectionMqttSection({
           type="button"
           onClick={() => void handleStartInspection()}
           disabled={starting}
-          className="flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+          className="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:hover:bg-slate-900"
         >
-          {starting ? 'Consultando impresora…' : 'Inspección Anual Obligatoria'}
+          {starting ? 'Consultando impresora…' : 'Consultar impresora (StaInf)'}
         </button>
       ) : null}
 

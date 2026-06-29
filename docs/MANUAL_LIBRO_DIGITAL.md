@@ -377,33 +377,34 @@ Checklist reglamentario con el estado de cada ítem (Bien, Violentado o Defectuo
 ### 8.3 Crear una Nueva Inspección (Solo Rol Técnico)
 
 1. En la pestaña **Inspecciones**, pulse el botón **"+"**.
-2. Se abrirá el formulario **"Añadir Inspección Anual"** en una sola pantalla (sin modal).
-3. Campos automáticos:
-   - **Inspector Responsable**: su nombre y cédula.
-   - **Sucursal / empresa**: según el directorio de empleados.
+2. Se abrirá un **único formulario** «Añadir Inspección Anual» (una sola tarjeta, sin secciones separadas).
+3. En la parte superior verá el progreso **1. Impresora → 2. Guardar en libro** cuando el equipo aplique para comunicación fiscal.
 
-4. Complete el **ritual MQTT inline** (obligatorio antes de guardar):
-   - **StaInf**: obtiene el registro de la impresora.
-   - **Checklist reglamentario**: marque cada ítem como conforme (Bien) o no conforme.
-   - **Pruebas opcionales**: factura y nota de crédito de prueba (pueden marcar automáticamente los ítems correspondientes).
-   - **SetDateRevO**: envía la inspección anual obligatoria a la impresora fiscal.
-
-5. Complete los campos del **registro en libro**:
+4. Complete los **datos del registro** (siempre visibles en el mismo formulario):
 
 | Campo | Tipo | Descripción |
 |---|---|---|
+| Inspector Responsable | Automático | Su nombre y cédula |
 | Fecha de inspección | Fecha | No puede ser futura |
 | Observaciones / Resultados | Texto | Descripción detallada de hallazgos |
 
-> El estado del precinto se determina únicamente desde el checklist («Estado del Precinto»); no hay un campo duplicado en el formulario inferior.
+5. **Paso 1 · Impresora** (obligatorio en equipos enajenados con cliente y MAC):
+   - Pulse **«Consultar impresora (StaInf)»** para obtener el registro.
+   - Complete el **checklist reglamentario** (cinco ítems) y, si lo desea, las pruebas opcionales de factura y nota de crédito.
+   - Pulse **«Paso 1 · Registrar en impresora (SetDateRevO)»**.
+   - Al confirmarse en la impresora, el indicador marcará el paso 1 como completado.
 
-6. Pulse **"Guardar Inspección"**. El sistema persiste el checklist completo junto con los datos MQTT de auditoría.
+6. **Paso 2 · Guardar en libro fiscal**:
+   - Pulse **«Paso 2 · Guardar en libro fiscal»** (habilitado tras el paso 1).
+   - El sistema persiste en una sola fila de base de datos: checklist, observaciones, fecha, inspector y auditoría MQTT.
+
+> El estado del precinto se determina únicamente desde el checklist («Estado del Precinto»); no hay un campo duplicado.
 
 ### 8.4 Validaciones de Inspección
 
-- Debe completarse **SetDateRevO** en la impresora antes de guardar en el libro fiscal.
+- En equipos con comunicación fiscal, debe completarse el **paso 1 (SetDateRevO)** antes de habilitar el guardado en libro.
 - La fecha de inspección no puede ser futura.
-- Los campos de inspector y fecha son obligatorios.
+- Los campos de inspector, fecha y observaciones son obligatorios.
 - Se requiere una sesión activa válida.
 
 ---
