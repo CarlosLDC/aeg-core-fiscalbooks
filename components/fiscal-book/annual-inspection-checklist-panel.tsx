@@ -87,7 +87,7 @@ export function AnnualInspectionChecklistPanel({
                 className={CHECKBOX_CLASS}
               />
               <label htmlFor={`annual-inspection-${row.key}`} className={LABEL_CLASS}>
-                {row.title}
+                {row.okLabel}
               </label>
             </div>
             {row.action === 'test-invoice' ? (
