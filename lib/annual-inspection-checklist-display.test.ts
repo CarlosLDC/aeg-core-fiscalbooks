@@ -24,7 +24,7 @@ describe('annualInspectionChecklistRows', () => {
       precintoViolentado: true,
     });
     expect(rows.find((row) => row.label === 'Precinto')?.value).toBe(
-      'Precinto violentado',
+      'Violentado',
     );
   });
 
@@ -38,7 +38,7 @@ describe('annualInspectionChecklistRows', () => {
       chkSensorPapel: true,
     });
     expect(rows.find((row) => row.label === 'Impresión de factura')?.value).toBe(
-      'Impresión de factura defectuosa',
+      'Defectuoso',
     );
   });
 });

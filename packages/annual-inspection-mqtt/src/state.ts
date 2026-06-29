@@ -98,9 +98,12 @@ export function formatChecklistItemValue(
   key: AnnualInspectionChecklistKey,
   checked: boolean | null | undefined,
 ): string {
-  const row = getAnnualInspectionChecklistRow(key);
-  if (!row || checked == null) return "—";
-  return checked ? row.okLabel : row.notOkLabel;
+  if (checked == null) return "—";
+  if (checked) return "Buen estado";
+  if (key === "chkPrecinto" || key === "chkEtiquetaFiscal") {
+    return ANNUAL_INSPECTION_INSP_AO_VIOLATED;
+  }
+  return ANNUAL_INSPECTION_INSP_AO_DEFECTIVE;
 }
 
 export function hasPersistedChecklist(input: Partial<AnnualInspectionChecklistPersisted>): boolean {
