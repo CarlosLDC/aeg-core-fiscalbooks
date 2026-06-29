@@ -240,26 +240,28 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
 
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-              Inspector Responsable
-            </label>
-            <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500">
-              {inspectorInfo.userName} (V{inspectorInfo.userNationalId.replace(/-/g, '')})
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="space-y-4">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                Inspector Responsable
+              </label>
+              <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500">
+                {inspectorInfo.userName} (V{inspectorInfo.userNationalId.replace(/-/g, '')})
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-4">
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-              Fecha de inspección
-            </label>
-            <input
-              type="date"
-              required
-              className="w-full max-w-xs px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white"
-              value={fechaInspeccion}
-              onChange={(e) => setFechaInspeccion(e.target.value)}
-            />
+            <div className="space-y-4">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                Fecha de inspección
+              </label>
+              <input
+                type="date"
+                required
+                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white"
+                value={fechaInspeccion}
+                onChange={(e) => setFechaInspeccion(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="space-y-4">
