@@ -99,15 +99,9 @@ export function AnnualInspectionChecklistPanel({
       </label>
 
       <div className="space-y-4">
-        <div>
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-            Resultados de inspección
-          </p>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 ml-1">
-            Marque cada ítem conforme lo verificó en el equipo. Las pruebas de factura y nota de
-            crédito pueden marcar los ítems correspondientes automáticamente.
-          </p>
-        </div>
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+          Resultados de inspección
+        </p>
 
         {ANNUAL_INSPECTION_CHECKLIST_ROWS.map((row) => (
           <div key={row.key} className="space-y-2">

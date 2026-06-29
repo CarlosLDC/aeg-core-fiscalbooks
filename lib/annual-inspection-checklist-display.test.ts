@@ -23,7 +23,7 @@ describe('annualInspectionChecklistRows', () => {
       ...baseInspection,
       precintoViolentado: true,
     });
-    expect(rows.find((row) => row.label === 'Precinto en buen estado')?.value).toBe(
+    expect(rows.find((row) => row.label === 'Estado del Precinto')?.value).toBe(
       'Violentado',
     );
   });
@@ -37,7 +37,7 @@ describe('annualInspectionChecklistRows', () => {
       chkNotaCredito: true,
       chkSensorPapel: true,
     });
-    expect(rows.find((row) => row.label === 'Impresión de factura en buen estado')?.value).toBe(
+    expect(rows.find((row) => row.label === 'Estado de la Factura')?.value).toBe(
       'Defectuoso',
     );
   });

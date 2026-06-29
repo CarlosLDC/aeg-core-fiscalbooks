@@ -2,9 +2,7 @@ import type { AnnualInspection, FiscalPrinter } from '@/lib/types';
 import { NoData } from '@/components/no-data';
 import {
   annualInspectionChecklistRows,
-  formatMqttSetDateRevOAt,
   hasAnnualInspectionChecklistDisplay,
-  hasAnnualInspectionMqttAudit,
 } from '@/lib/annual-inspection-checklist-display';
 
 export function SingleInspectionSheet({ inspection }: { inspection: AnnualInspection; printer: FiscalPrinter }) {
@@ -69,42 +67,6 @@ export function SingleInspectionSheet({ inspection }: { inspection: AnnualInspec
           </div>
         </div>
       </section>
-
-      {hasAnnualInspectionMqttAudit(inspection) ? (
-        <section>
-          <h2 className="text-[11px] uppercase tracking-widest font-black text-slate-900 dark:text-white mb-6 pb-2 border-b border-slate-100 dark:border-slate-900">
-            {hasAnnualInspectionChecklistDisplay(inspection) ? '4' : '3'}. REGISTRO MQTT EN IMPRESORA
-          </h2>
-          <div className="bg-slate-50 dark:bg-slate-900/50 p-6 border border-slate-100 dark:border-slate-900 transition-colors">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">
-                  Registro de impresora (StaInf)
-                </label>
-                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
-                  {inspection.mqttRegistroImpresora || <NoData />}
-                </p>
-              </div>
-              <div>
-                <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">
-                  SetDateRevO (timestamp)
-                </label>
-                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
-                  {formatMqttSetDateRevOAt(inspection.mqttSetDateRevOAt)}
-                </p>
-              </div>
-              <div>
-                <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">
-                  Nº factura de prueba
-                </label>
-                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
-                  {inspection.mqttNumeroFacturaPrueba ?? <NoData />}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }
