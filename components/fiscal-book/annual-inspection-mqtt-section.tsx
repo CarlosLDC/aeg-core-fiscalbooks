@@ -37,38 +37,10 @@ export function AnnualInspectionMqttSection({
   const [flow, setFlow] = useState<AnnualInspectionMqttFlowState | null>(null);
   const [sectionError, setSectionError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [sendingTestInvoice, setSendingTestInvoice] = useState(false);
   const [sendingTestCreditNote, setSendingTestCreditNote] = useState(false);
   const [submittingInspection, setSubmittingInspection] = useState(false);
   const [mqttCompleted, setMqttCompleted] = useState(false);
-
-  async function refreshRegistration() {
-    setRefreshing(true);
-    setSectionError(null);
-    try {
-      const result = await requestAnnualInspectionStaInf({ printerId });
-      setFlow((current) =>
-        current
-          ? {
-              ...current,
-              registroImpresora: result.registroImpresora,
-              fiscalSerial: result.fiscalSerial,
-            }
-          : createAnnualInspectionMqttFlowState({
-              registroImpresora: result.registroImpresora,
-              fiscalSerial: result.fiscalSerial,
-              printerId,
-              productDescription: ANNUAL_INSPECTION_DEFAULT_PRODUCT,
-            }),
-      );
-    } catch (err) {
-      setSectionError(getAnnualInspectionMqttErrorMessage(err));
-      throw err;
-    } finally {
-      setRefreshing(false);
-    }
-  }
 
   async function handleStartInspection() {
     setStarting(true);
@@ -133,7 +105,7 @@ export function AnnualInspectionMqttSection({
         throw new Error('Primero envíe la factura de prueba para obtener el número de factura.');
       }
       if (!flow.registroImpresora.trim()) {
-        throw new Error('No hay registro de impresora. Use Actualizar o reinicie el flujo.');
+        throw new Error('No hay registro de impresora. Reinicie el flujo consultando la impresora.');
       }
       await requestAnnualInspectionTestCreditNote({
         printerId: flow.printerId,
@@ -207,7 +179,6 @@ export function AnnualInspectionMqttSection({
 
       {flow && !mqttCompleted ? (
         <AnnualInspectionChecklistPanel
-          registroImpresora={flow.registroImpresora}
           numeroFacturaPrueba={flow.numeroFacturaPrueba}
           productDescription={flow.productDescription}
           onProductDescriptionChange={(value) =>
@@ -215,8 +186,6 @@ export function AnnualInspectionMqttSection({
           }
           checklist={flow.checklist}
           onChecklistChange={handleChecklistChange}
-          onRefresh={() => void refreshRegistration()}
-          refreshing={refreshing}
           onSendTestInvoice={() => void handleSendTestInvoice()}
           sendingTestInvoice={sendingTestInvoice}
           onSendTestCreditNote={() => void handleSendTestCreditNote()}

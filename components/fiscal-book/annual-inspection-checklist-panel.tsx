@@ -12,14 +12,11 @@ const LABEL_CLASS =
   'text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none';
 
 type AnnualInspectionChecklistPanelProps = {
-  registroImpresora: string;
   numeroFacturaPrueba: number | null;
   productDescription: string;
   onProductDescriptionChange: (value: string) => void;
   checklist: AnnualInspectionChecklistState;
   onChecklistChange: (key: AnnualInspectionChecklistKey, checked: boolean) => void;
-  onRefresh: () => void;
-  refreshing: boolean;
   onSendTestInvoice: () => void;
   sendingTestInvoice: boolean;
   onSendTestCreditNote: () => void;
@@ -33,14 +30,11 @@ type AnnualInspectionChecklistPanelProps = {
 };
 
 export function AnnualInspectionChecklistPanel({
-  registroImpresora,
   numeroFacturaPrueba,
   productDescription,
   onProductDescriptionChange,
   checklist,
   onChecklistChange,
-  onRefresh,
-  refreshing,
   onSendTestInvoice,
   sendingTestInvoice,
   onSendTestCreditNote,
@@ -54,28 +48,6 @@ export function AnnualInspectionChecklistPanel({
 }: AnnualInspectionChecklistPanelProps) {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <label className="block min-w-0 flex-1">
-          <span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-            Registro de impresora
-          </span>
-          <input
-            type="text"
-            readOnly
-            value={registroImpresora}
-            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-sm text-slate-900 dark:text-white"
-          />
-        </label>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={refreshing || disabled}
-          className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-70 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
-        >
-          {refreshing ? 'Actualizando…' : 'Actualizar'}
-        </button>
-      </div>
-
       {numeroFacturaPrueba != null ? (
         <p className="text-sm ml-1 text-slate-600 dark:text-slate-400">
           <span>Número de factura de prueba:</span>{' '}
