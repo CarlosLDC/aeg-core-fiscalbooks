@@ -90,10 +90,10 @@ describe("@aeg/annual-inspection-mqtt state", () => {
     expect(hasPersistedChecklist({})).toBe(false);
   });
 
-  it("formats checklist values for display", () => {
-    expect(formatChecklistItemValue("chkPrecinto", true)).toBe("Bien");
-    expect(formatChecklistItemValue("chkPrecinto", false)).toBe("Violentado");
-    expect(formatChecklistItemValue("chkFactura", false)).toBe("Defectuoso");
+  it('formats checklist values for display', () => {
+    expect(formatChecklistItemValue("chkPrecinto", true)).toBe("Precinto en buen estado");
+    expect(formatChecklistItemValue("chkPrecinto", false)).toBe("Precinto violentado");
+    expect(formatChecklistItemValue("chkFactura", false)).toBe("Impresión de factura defectuosa");
     expect(formatChecklistItemValue("chkFactura", null)).toBe("—");
   });
 });

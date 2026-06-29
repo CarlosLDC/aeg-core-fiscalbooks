@@ -34,7 +34,7 @@ export function hasAnnualInspectionChecklistDisplay(
 
 export function annualInspectionChecklistRows(inspection: AnnualInspection) {
   return ANNUAL_INSPECTION_CHECKLIST_ROWS.map((row) => ({
-    label: row.label,
+    label: row.title,
     value: formatChecklistItemValue(row.key, checklistValue(inspection, row.key)),
   }));
 }

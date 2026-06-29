@@ -362,13 +362,13 @@ Se muestra un modal de confirmación con dos opciones:
 #### Sección 2: Resultados de inspección
 Checklist reglamentario con el estado de cada ítem (Bien, Violentado o Defectuoso según corresponda):
 
-| Ítem | Descripción |
-|---|---|
-| Precinto en buen estado | Integridad del precinto fiscal |
-| Etiqueta fiscal en buen estado | Condición de la etiqueta fiscal |
-| Impresión de factura en buen estado | Resultado de la prueba de factura |
-| Impresión de nota de crédito en buen estado | Resultado de la prueba de nota de crédito |
-| Sensor de papel en buen estado | Funcionamiento del sensor de papel |
+| Ítem | Resultado favorable | Resultado desfavorable |
+|---|---|---|
+| Precinto | Precinto en buen estado | Precinto violentado |
+| Etiqueta fiscal | Etiqueta fiscal en buen estado | Etiqueta fiscal violentada |
+| Impresión de factura | Impresión de factura en buen estado | Impresión de factura defectuosa |
+| Impresión de nota de crédito | Impresión de nota de crédito en buen estado | Impresión de nota de crédito defectuosa |
+| Sensor de papel | Sensor de papel en buen estado | Sensor de papel defectuoso |
 
 #### Sección 3: Detalles adicionales
 - **Observaciones y Hallazgos**: texto descriptivo con los resultados de la inspección.
