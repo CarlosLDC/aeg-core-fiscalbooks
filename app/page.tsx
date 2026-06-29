@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUserProfile } from '@/app/layout';
 import { NoData } from '@/components/no-data';
+import { SearchIcon, ArrowRight } from '@/components/icons';
 import { printerEstatusBadgeClass, printerEstatusLabel } from '@/lib/printer-status';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50] as const;
