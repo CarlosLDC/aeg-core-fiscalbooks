@@ -4,6 +4,10 @@ import {
   annualInspectionChecklistRows,
   hasAnnualInspectionChecklistDisplay,
 } from '@/lib/annual-inspection-checklist-display';
+import {
+  hasAnnualInspectionQrProof,
+  truncateQrCodigo,
+} from '@/lib/annual-inspection-qr-display';
 
 export function SingleInspectionSheet({ inspection }: { inspection: AnnualInspection; printer: FiscalPrinter }) {
   return (
@@ -54,9 +58,60 @@ export function SingleInspectionSheet({ inspection }: { inspection: AnnualInspec
         </section>
       ) : null}
 
+      {hasAnnualInspectionQrProof(inspection) ? (
+        <section>
+          <h2 className="text-[11px] uppercase tracking-widest font-black text-slate-900 dark:text-white mb-6 pb-2 border-b border-slate-100 dark:border-slate-900">
+            {hasAnnualInspectionChecklistDisplay(inspection) ? '3' : '2'}. COMPROBANTE QR
+          </h2>
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-6 border border-slate-100 dark:border-slate-900 transition-colors">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">
+                  Registro impresora
+                </label>
+                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                  {inspection.mqttQrRegistro || <NoData />}
+                </p>
+              </div>
+              <div>
+                <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">
+                  MAC
+                </label>
+                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                  {inspection.mqttQrMac || <NoData />}
+                </p>
+              </div>
+              <div>
+                <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">
+                  Fecha (firmware)
+                </label>
+                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                  {inspection.mqttQrFecha || <NoData />}
+                </p>
+              </div>
+              <div>
+                <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">
+                  Código QR
+                </label>
+                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                  {truncateQrCodigo(inspection.mqttQrCodigo)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section>
         <h2 className="text-[11px] uppercase tracking-widest font-black text-slate-900 dark:text-white mb-6 pb-2 border-b border-slate-100 dark:border-slate-900">
-          {hasAnnualInspectionChecklistDisplay(inspection) ? '3' : '2'}. OBSERVACIONES
+          {hasAnnualInspectionChecklistDisplay(inspection)
+            ? hasAnnualInspectionQrProof(inspection)
+              ? '4'
+              : '3'
+            : hasAnnualInspectionQrProof(inspection)
+              ? '3'
+              : '2'}
+          . OBSERVACIONES
         </h2>
         <div className="bg-slate-50 dark:bg-slate-900/50 p-6 border border-slate-100 dark:border-slate-900 transition-colors">
           <div>

@@ -348,6 +348,13 @@ function mapAnnualInspection(i: FiscalBookAnnualInspectionResponse): AnnualInspe
       pickBoolean(i, 'chkNotaCredito', 'chk_nota_credito') ?? i.chkNotaCredito ?? null,
     chkSensorPapel:
       pickBoolean(i, 'chkSensorPapel', 'chk_sensor_papel') ?? i.chkSensorPapel ?? null,
+    mqttQrCodigo:
+      pickString(i, 'mqttQrCodigo', 'mqtt_qr_codigo') ?? i.mqttQrCodigo ?? null,
+    mqttQrRegistro:
+      pickString(i, 'mqttQrRegistro', 'mqtt_qr_registro') ?? i.mqttQrRegistro ?? null,
+    mqttQrMac: pickString(i, 'mqttQrMac', 'mqtt_qr_mac') ?? i.mqttQrMac ?? null,
+    mqttQrFecha:
+      pickString(i, 'mqttQrFecha', 'mqtt_qr_fecha') ?? i.mqttQrFecha ?? null,
   };
 }
 

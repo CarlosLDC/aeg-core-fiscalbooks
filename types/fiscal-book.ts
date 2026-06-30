@@ -138,4 +138,8 @@ export type FiscalBookAnnualInspectionResponse = {
   chkFactura?: boolean | null;
   chkNotaCredito?: boolean | null;
   chkSensorPapel?: boolean | null;
+  mqttQrCodigo?: string | null;
+  mqttQrRegistro?: string | null;
+  mqttQrMac?: string | null;
+  mqttQrFecha?: string | null;
 };
