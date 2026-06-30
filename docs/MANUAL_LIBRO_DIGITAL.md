@@ -397,13 +397,12 @@ Checklist reglamentario con el estado de cada ítem (Bien, Violentado o Defectuo
 
 > El estado del precinto se determina desde «Precinto en buen estado»; no hay un campo duplicado.
 
-### 8.4 Verificar comprobante QR (página de inicio)
+### 8.4 Verificar comprobante QR
 
-Tras una inspección anual registrada en el libro fiscal, la impresora imprime un **código QR** en el comprobante físico. Desde la página de inicio del portal:
+Tras una inspección anual registrada en el libro fiscal, la impresora imprime un **código QR** en el comprobante físico. En la barra superior del portal pulse el icono de QR o abra **Verificar comprobante QR** (`/verify-qr`):
 
-1. Use la sección **Verificar comprobante QR**.
-2. Si su equipo tiene cámara, pulse **Escanear** y apunte al QR impreso; también puede **Pegar código** manualmente.
-3. Si el comprobante corresponde a un registro existente en la base de datos, el sistema abre directamente ese registro en el libro fiscal (pestaña Inspecciones).
+1. Si su equipo tiene cámara, pulse **Escanear** y apunte al QR impreso; también puede **Pegar código** manualmente.
+2. Si el comprobante corresponde a un registro existente en la base de datos, el sistema abre directamente ese registro en el libro fiscal (pestaña Inspecciones).
 
 Si el código no desencripta, no coincide con ningún equipo o no hay registro guardado con esos datos MQTT, se muestra un mensaje de error.
 

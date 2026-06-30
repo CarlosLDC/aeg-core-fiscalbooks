@@ -5,7 +5,7 @@ import './globals.css';
 import Link from 'next/link';
 import { useEffect, useState, createContext, useContext } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { SunIcon, MoonIcon } from '@/components/icons';
+import { SunIcon, MoonIcon, QrCodeIcon } from '@/components/icons';
 import { getSession, logout as authLogout } from '@/lib/auth';
 import {
   refreshUserProfileFromApi,
@@ -171,12 +171,22 @@ export default function RootLayout({
                 </Link>
                 <AdminAppLink />
                 {sessionUser && showManualLink && (
-                  <Link
-                    href="/manual"
-                    className="inline-flex items-center px-2 py-1 md:px-2.5 rounded-md text-[11px] md:text-sm font-medium text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/70 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
-                  >
-                    Manual
-                  </Link>
+                  <>
+                    <Link
+                      href="/verify-qr"
+                      title="Verificar comprobante QR"
+                      aria-label="Verificar comprobante QR"
+                      className="inline-flex items-center justify-center p-1.5 rounded-md text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/70 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
+                    >
+                      <QrCodeIcon size={18} />
+                    </Link>
+                    <Link
+                      href="/manual"
+                      className="inline-flex items-center px-2 py-1 md:px-2.5 rounded-md text-[11px] md:text-sm font-medium text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/70 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
+                    >
+                      Manual
+                    </Link>
+                  </>
                 )}
               </div>
 

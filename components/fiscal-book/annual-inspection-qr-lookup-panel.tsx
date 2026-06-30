@@ -13,7 +13,7 @@ type InputMode = 'manual' | 'camera';
 export function AnnualInspectionQrLookupPanel() {
   const router = useRouter();
   const cameraAvailable = canUseQrCamera();
-  const [inputMode, setInputMode] = useState<InputMode>(cameraAvailable ? 'camera' : 'manual');
+  const [inputMode, setInputMode] = useState<InputMode>('manual');
   const [qrCodigo, setQrCodigo] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +52,10 @@ export function AnnualInspectionQrLookupPanel() {
     },
     [loading, runLookup],
   );
+
+  const handleCameraError = useCallback((message: string) => {
+    setCameraError(message);
+  }, []);
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -97,10 +101,7 @@ export function AnnualInspectionQrLookupPanel() {
       <div className="mt-4">
         {inputMode === 'camera' && cameraAvailable ? (
           <>
-            <QrCodeScanner
-              onScan={handleScan}
-              onError={(message) => setCameraError(message)}
-            />
+            <QrCodeScanner onScan={handleScan} onError={handleCameraError} />
             {cameraError ? (
               <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{cameraError}</p>
             ) : null}
