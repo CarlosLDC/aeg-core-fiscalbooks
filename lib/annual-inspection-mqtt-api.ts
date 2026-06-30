@@ -6,7 +6,6 @@ import type {
   AnnualInspectionTestCreditNoteResponse,
   AnnualInspectionTestInvoiceResponse,
 } from '@/types/annual-inspection-mqtt';
-import type { AnnualInspectionVerifyQrResponse } from '@/lib/annual-inspection-qr-display';
 
 const BASE = '/api/mqtt/annual-inspection';
 
@@ -54,17 +53,6 @@ export async function submitAnnualInspectionMqtt(input: {
   chkSensorPapel: boolean;
 }): Promise<AnnualInspectionSubmitResponse> {
   return apiFetch<AnnualInspectionSubmitResponse>(`${BASE}/submit`, {
-    method: 'POST',
-    body: JSON.stringify(input),
-  });
-}
-
-export async function verifyAnnualInspectionQr(input: {
-  printerId: number;
-  qrCodigo: string;
-  registroImpresora: string;
-}): Promise<AnnualInspectionVerifyQrResponse> {
-  return apiFetch(`${BASE}/verify-qr`, {
     method: 'POST',
     body: JSON.stringify(input),
   });

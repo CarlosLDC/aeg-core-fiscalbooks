@@ -10,6 +10,7 @@ import { NoData } from '@/components/no-data';
 import { SearchIcon, ArrowRight } from '@/components/icons';
 import { printerEstatusBadgeClass, printerEstatusLabel } from '@/lib/printer-status';
 import { MIN_PARTIAL_SEARCH_LENGTH } from '@/lib/fiscal-book-search';
+import { AnnualInspectionQrLookupPanel } from '@/components/fiscal-book/annual-inspection-qr-lookup-panel';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50] as const;
 const PAGE_SIZE_STORAGE_KEY = 'aeg-search-page-size';
@@ -280,6 +281,10 @@ export default function SearchPage() {
           </div>
         )}
 
+      </div>
+
+      <div className="mb-16">
+        <AnnualInspectionQrLookupPanel />
       </div>
 
       <p className="mt-[-1rem] md:mt-[-2.5rem] mb-12 text-center text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] animate-in fade-in slide-in-from-top-2 duration-1000">

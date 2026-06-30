@@ -393,16 +393,23 @@ Checklist reglamentario con el estado de cada ítem (Bien, Violentado o Defectuo
    - Opcionalmente envíe factura y nota de crédito de prueba.
    - Pulse **Registrar inspección en impresora** antes de guardar.
 
-5. Tras el registro exitoso en la impresora, escanee o pegue el **código QR** impreso en el bloque **Comprobante QR** y pulse **Verificar QR**. El sistema valida que el registro y la MAC coincidan con el equipo.
-
-6. Pulse **Guardar Inspección**. El sistema persiste checklist, observaciones, fecha, inspector, auditoría Remoto y datos del QR en un solo registro.
+5. Pulse **Guardar Inspección**. El sistema persiste checklist, observaciones, fecha, inspector y auditoría Remoto en un solo registro.
 
 > El estado del precinto se determina desde «Precinto en buen estado»; no hay un campo duplicado.
 
-### 8.4 Validaciones de Inspección
+### 8.4 Verificar comprobante QR (página de inicio)
+
+Tras una inspección anual registrada en el libro fiscal, la impresora imprime un **código QR** en el comprobante físico. Desde la página de inicio del portal:
+
+1. Use la sección **Verificar comprobante QR**.
+2. Si su equipo tiene cámara, pulse **Escanear** y apunte al QR impreso; también puede **Pegar código** manualmente.
+3. Si el comprobante corresponde a un registro existente en la base de datos, el sistema abre directamente ese registro en el libro fiscal (pestaña Inspecciones).
+
+Si el código no desencripta, no coincide con ningún equipo o no hay registro guardado con esos datos MQTT, se muestra un mensaje de error.
+
+### 8.5 Validaciones de Inspección
 
 - En equipos con comunicación fiscal, debe registrarse la inspección en la impresora antes de guardar.
-- En equipos con comunicación fiscal, el código QR impreso debe verificarse correctamente antes de guardar.
 - La fecha de inspección no puede ser futura.
 - Los campos de inspector, fecha y observaciones son obligatorios.
 - Se requiere una sesión activa válida.

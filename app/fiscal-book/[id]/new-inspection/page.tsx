@@ -4,7 +4,6 @@ import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AnnualInspectionMqttSection } from '@/components/fiscal-book/annual-inspection-mqtt-section';
-import { AnnualInspectionQrSection } from '@/components/fiscal-book/annual-inspection-qr-section';
 import { useUserProfile } from '@/app/layout';
 import { canCreateAnnualInspection } from '@/lib/fiscal-permissions';
 import { resolveAnnualInspectionActor } from '@/lib/field-actor-resolver';
@@ -15,7 +14,6 @@ import {
   isPrinterEligibleForAnnualInspectionMqtt,
 } from '@/lib/annual-inspection-mqtt-state';
 import type { AnnualInspectionMqttCompletion } from '@/lib/annual-inspection-mqtt-state';
-import type { AnnualInspectionQrVerification } from '@/lib/annual-inspection-qr-display';
 import { printerService } from '@/lib/printer-service';
 import { createAnnualInspection } from '@/lib/annual-inspections-api';
 import { messageFromUnknownError } from '@/lib/api-error-message';
@@ -48,10 +46,6 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
   const [successRecordId, setSuccessRecordId] = useState<string | null>(null);
   const [mqttCompleted, setMqttCompleted] = useState(false);
   const [mqttCompletion, setMqttCompletion] = useState<AnnualInspectionMqttCompletion | null>(
-    null,
-  );
-  const [qrVerified, setQrVerified] = useState(false);
-  const [qrVerification, setQrVerification] = useState<AnnualInspectionQrVerification | null>(
     null,
   );
 
@@ -112,12 +106,6 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
         );
       }
 
-      if (printerMqttEligible && (!qrVerified || !qrVerification)) {
-        throw new Error(
-          'Debe verificar el código QR impreso por la impresora antes de guardar en el libro fiscal.',
-        );
-      }
-
       if (!inspectorInfo?.userId || !fechaInspeccion) {
         throw new Error('Todos los campos marcados con (*) son obligatorios según el reglamento.');
       }
@@ -143,10 +131,6 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
         mqttRegistroImpresora: mqttCompletion?.registroImpresora ?? null,
         mqttSetDateRevOAt: mqttCompletion?.mqttSetDateRevOTimestamp ?? null,
         mqttNumeroFacturaPrueba: mqttCompletion?.numeroFacturaPrueba ?? null,
-        mqttQrCodigo: qrVerification?.qrCodigo ?? null,
-        mqttQrRegistro: qrVerification?.registro ?? null,
-        mqttQrMac: qrVerification?.mac ?? null,
-        mqttQrFecha: qrVerification?.fecha ?? null,
         ...persistedChecklist,
       });
 
@@ -307,22 +291,9 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
               onMqttCompleted={(completion: AnnualInspectionMqttCompletion) => {
                 setMqttCompleted(true);
                 setMqttCompletion(completion);
-                setQrVerified(false);
-                setQrVerification(null);
               }}
             />
           )}
-
-          {printerMqttEligible && mqttCompleted && mqttCompletion ? (
-            <AnnualInspectionQrSection
-              printerId={cleanPrinterId}
-              registroImpresora={mqttCompletion.registroImpresora}
-              onQrVerified={(verification) => {
-                setQrVerified(true);
-                setQrVerification(verification);
-              }}
-            />
-          ) : null}
 
           {error && (
             <div className="bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 text-sm px-4 py-3 rounded-xl border border-red-100 dark:border-red-900/30">
@@ -339,16 +310,11 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
             </Link>
             <button
               type="submit"
-              disabled={
-                loading ||
-                (printerMqttEligible && (!mqttCompleted || !qrVerified))
-              }
+              disabled={loading || (printerMqttEligible && !mqttCompleted)}
               title={
                 printerMqttEligible && !mqttCompleted
                   ? 'Registre primero la inspección en la impresora'
-                  : printerMqttEligible && mqttCompleted && !qrVerified
-                    ? 'Verifique el código QR impreso antes de guardar'
-                    : undefined
+                  : undefined
               }
               className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
