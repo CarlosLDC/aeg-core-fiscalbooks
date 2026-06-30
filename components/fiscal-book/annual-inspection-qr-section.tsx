@@ -65,9 +65,9 @@ export function AnnualInspectionQrSection({
         >
           Código del QR
         </label>
-        <input
+        <textarea
           id="annual-inspection-qr-codigo"
-          type="text"
+          rows={3}
           className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm text-slate-900 outline-none transition-all focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
           placeholder="Código extraído del QR"
           value={qrCodigo}
