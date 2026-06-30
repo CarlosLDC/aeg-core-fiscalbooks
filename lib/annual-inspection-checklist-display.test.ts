@@ -7,6 +7,7 @@ import type { AnnualInspection } from '@/lib/types';
 
 const baseInspection: AnnualInspection = {
   id: '1',
+  libroNumber: 1,
   date: '2026-01-01',
   serviceCenter: 'Centro',
   centerRif: 'J-1',

@@ -72,3 +72,13 @@ export function getActiveSealSerial(printer: FiscalPrinter): string | null {
   );
   return activeSeal ? activeSeal.serial : null;
 }
+
+/** Número de registro en el libro (1..n), único por impresora y tipo de historial. */
+export function assignLibroNumbers<T extends { libroNumber?: number }>(
+  records: T[],
+): Array<T & { libroNumber: number }> {
+  return records.map((record, index) => ({
+    ...record,
+    libroNumber: index + 1,
+  }));
+}

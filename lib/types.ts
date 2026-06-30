@@ -51,6 +51,8 @@ export interface Sucursal {
 
 export interface TechnicalReview {
   id: string;
+  /** Número de registro en el libro de esta impresora (1..n, por orden cronológico). */
+  libroNumber: number;
   /** ISO `created_at` del registro en BD (libro fiscal / ordenación). */
   createdAt?: string | null;
   fechaSolicitud?: string | null;
@@ -81,6 +83,8 @@ export interface TechnicalReview {
 
 export interface AnnualInspection {
   id: string;
+  /** Número de registro en el libro de esta impresora (1..n, por orden cronológico). */
+  libroNumber: number;
   /** ISO `created_at` del registro en BD. */
   createdAt?: string | null;
   date: string | null;

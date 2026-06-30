@@ -92,6 +92,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                     (r.description || '').toLowerCase().includes(q) ||
                     (r.technician || '').toLowerCase().includes(q) ||
                     (r.serviceCenter || '').toLowerCase().includes(q) ||
+                    String(r.libroNumber).includes(q) ||
                     String(r.id).includes(q) ||
                     (r.fechaSolicitud || '').toLowerCase().includes(q)
             );
@@ -114,6 +115,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                     (r.observations || '').toLowerCase().includes(q) ||
                     (r.inspector || '').toLowerCase().includes(q) ||
                     (r.serviceCenter || '').toLowerCase().includes(q) ||
+                    String(r.libroNumber).includes(q) ||
                     String(r.id).includes(q) ||
                     (r.date || '').toLowerCase().includes(q)
             );
@@ -923,7 +925,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                                                 {String(totalPages).padStart(2, '0')}
                                             </span>
                                             <span className="inline-flex items-center rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 px-2.5 py-1 font-mono text-slate-700 dark:text-slate-300">
-                                                Registro #{currentRecord.id}
+                                                Registro #{currentRecord.libroNumber}
                                             </span>
                                             {(currentRecord as TechnicalReview).createdAt ? (
                                                 <span className="inline-flex items-center rounded-md border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-emerald-900 dark:text-emerald-200 font-semibold">
@@ -956,7 +958,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                                                 {String(totalPages).padStart(2, '0')}
                                             </span>
                                             <span className="inline-flex items-center rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 px-2.5 py-1 font-mono text-slate-700 dark:text-slate-300">
-                                                Registro #{currentRecord.id}
+                                                Registro #{currentRecord.libroNumber}
                                             </span>
                                             {(currentRecord as AnnualInspection).createdAt ? (
                                                 <span className="inline-flex items-center rounded-md border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-emerald-900 dark:text-emerald-200 font-semibold">

@@ -10,6 +10,7 @@ import {
   type FiscalBookSearchType,
 } from '@/lib/fiscal-book-search';
 import { toBooleanOrNull, toNumber, toStringOrNull } from '@/lib/api-contract';
+import { assignLibroNumbers } from '@/lib/fiscal-helpers';
 import {
   AnnualInspection,
   FiscalPrinter,
@@ -107,8 +108,12 @@ function mapDetailToFiscalPrinter(detail: FiscalBookDetailResponse): FiscalPrint
       | FiscalBookAnnualInspectionResponse[]
       | undefined) ?? detail.annualInspections;
 
-  const technicalReviews: TechnicalReview[] = (technicalServices ?? []).map(mapTechnicalService);
-  const annualInspections: AnnualInspection[] = (inspections ?? []).map(mapAnnualInspection);
+  const technicalReviews: TechnicalReview[] = assignLibroNumbers(
+    (technicalServices ?? []).map(mapTechnicalService),
+  );
+  const annualInspections: AnnualInspection[] = assignLibroNumbers(
+    (inspections ?? []).map(mapAnnualInspection),
+  );
 
   return {
     id: String(detail.id),
@@ -237,7 +242,9 @@ function mapDetailToFiscalPrinter(detail: FiscalBookDetailResponse): FiscalPrint
   };
 }
 
-function mapTechnicalService(s: FiscalBookTechnicalServiceResponse): TechnicalReview {
+function mapTechnicalService(
+  s: FiscalBookTechnicalServiceResponse,
+): Omit<TechnicalReview, 'libroNumber'> {
   const failure =
     pickString(s, 'reportedFailure', 'reported_failure', 'description', 'descripcion') ??
     s.reportedFailure ??
@@ -302,7 +309,9 @@ function mapTechnicalService(s: FiscalBookTechnicalServiceResponse): TechnicalRe
   };
 }
 
-function mapAnnualInspection(i: FiscalBookAnnualInspectionResponse): AnnualInspection {
+function mapAnnualInspection(
+  i: FiscalBookAnnualInspectionResponse,
+): Omit<AnnualInspection, 'libroNumber'> {
   const inspectionDate =
     pickString(i, 'inspectionDate', 'inspection_date', 'date', 'fechaInspeccion') ??
     i.inspectionDate;
