@@ -684,109 +684,78 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
         </div>
     );
 
-    const filterDateInputClass =
-        'w-full min-w-0 px-3 py-2 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white';
+    const filterLabelClass =
+        'text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500';
+    const filterFieldClass =
+        'w-full min-w-0 h-10 px-3 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400';
+
+    const filterQuery = viewMode === 'tech' ? techFilterQuery : inspFilterQuery;
+    const filterFrom = viewMode === 'tech' ? techFilterFrom : inspFilterFrom;
+    const filterTo = viewMode === 'tech' ? techFilterTo : inspFilterTo;
+    const searchPlaceholder =
+        viewMode === 'tech'
+            ? 'Buscar (falla, técnico, centro, ID…)'
+            : 'Buscar (observaciones, inspector, centro…)';
+    const hasActiveFilters = Boolean(filterQuery || filterFrom || filterTo);
 
     const libroFiltrosInner =
         hasLibroFilters ? (
-            <>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 shrink-0">
-                    Filtros
-                </span>
-                {viewMode === 'tech' ? (
-                    <>
+            <div className="flex w-full flex-col gap-3">
+                <p className={filterLabelClass}>Filtros</p>
+                <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_9.5rem_9.5rem] lg:items-end">
+                    <label className="flex flex-col gap-1 sm:col-span-2 lg:col-span-1">
+                        <span className={filterLabelClass}>Buscar</span>
                         <input
                             type="search"
-                            placeholder="Buscar (falla, técnico, centro, ID…)"
-                            value={techFilterQuery}
+                            placeholder={searchPlaceholder}
+                            value={filterQuery}
                             onChange={(e) => {
-                                setTechFilterQuery(e.target.value);
+                                if (viewMode === 'tech') {
+                                    setTechFilterQuery(e.target.value);
+                                } else {
+                                    setInspFilterQuery(e.target.value);
+                                }
                                 setCurrentPage(0);
                             }}
-                            className="w-full md:flex-1 md:min-w-[160px] px-3 py-2 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400"
+                            className={filterFieldClass}
                         />
-                        <div className="flex w-full md:w-auto flex-col gap-2 sm:flex-row">
-                            <label className="flex min-w-[9.5rem] flex-1 flex-col gap-1">
-                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                                    Desde
-                                </span>
-                                <input
-                                    type="date"
-                                    value={techFilterFrom}
-                                    max={techFilterTo || undefined}
-                                    onChange={(e) => {
-                                        setTechFilterFrom(e.target.value);
-                                        setCurrentPage(0);
-                                    }}
-                                    className={filterDateInputClass}
-                                />
-                            </label>
-                            <label className="flex min-w-[9.5rem] flex-1 flex-col gap-1">
-                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                                    Hasta
-                                </span>
-                                <input
-                                    type="date"
-                                    value={techFilterTo}
-                                    min={techFilterFrom || undefined}
-                                    onChange={(e) => {
-                                        setTechFilterTo(e.target.value);
-                                        setCurrentPage(0);
-                                    }}
-                                    className={filterDateInputClass}
-                                />
-                            </label>
-                        </div>
-                    </>
-                ) : (
-                    <>
+                    </label>
+                    <label className="flex flex-col gap-1">
+                        <span className={filterLabelClass}>Desde</span>
                         <input
-                            type="search"
-                            placeholder="Buscar (observaciones, inspector, centro…)"
-                            value={inspFilterQuery}
+                            type="date"
+                            value={filterFrom}
+                            max={filterTo || undefined}
                             onChange={(e) => {
-                                setInspFilterQuery(e.target.value);
+                                if (viewMode === 'tech') {
+                                    setTechFilterFrom(e.target.value);
+                                } else {
+                                    setInspFilterFrom(e.target.value);
+                                }
                                 setCurrentPage(0);
                             }}
-                            className="w-full md:flex-1 md:min-w-[160px] px-3 py-2 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400"
+                            className={filterFieldClass}
                         />
-                        <div className="flex w-full md:w-auto flex-col gap-2 sm:flex-row">
-                            <label className="flex min-w-[9.5rem] flex-1 flex-col gap-1">
-                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                                    Desde
-                                </span>
-                                <input
-                                    type="date"
-                                    value={inspFilterFrom}
-                                    max={inspFilterTo || undefined}
-                                    onChange={(e) => {
-                                        setInspFilterFrom(e.target.value);
-                                        setCurrentPage(0);
-                                    }}
-                                    className={filterDateInputClass}
-                                />
-                            </label>
-                            <label className="flex min-w-[9.5rem] flex-1 flex-col gap-1">
-                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                                    Hasta
-                                </span>
-                                <input
-                                    type="date"
-                                    value={inspFilterTo}
-                                    min={inspFilterFrom || undefined}
-                                    onChange={(e) => {
-                                        setInspFilterTo(e.target.value);
-                                        setCurrentPage(0);
-                                    }}
-                                    className={filterDateInputClass}
-                                />
-                            </label>
-                        </div>
-                    </>
-                )}
-                {(viewMode === 'tech'
-                    ? techFilterQuery || techFilterFrom || techFilterTo
-                    : inspFilterQuery || inspFilterFrom || inspFilterTo) ? (
+                    </label>
+                    <label className="flex flex-col gap-1">
+                        <span className={filterLabelClass}>Hasta</span>
+                        <input
+                            type="date"
+                            value={filterTo}
+                            min={filterFrom || undefined}
+                            onChange={(e) => {
+                                if (viewMode === 'tech') {
+                                    setTechFilterTo(e.target.value);
+                                } else {
+                                    setInspFilterTo(e.target.value);
+                                }
+                                setCurrentPage(0);
+                            }}
+                            className={filterFieldClass}
+                        />
+                    </label>
+                </div>
+                {hasActiveFilters ? (
                     <button
                         type="button"
                         onClick={() => {
@@ -798,12 +767,12 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                             setInspFilterTo('');
                             setCurrentPage(0);
                         }}
-                        className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline px-2 self-start md:self-auto"
+                        className="self-start text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
                     >
                         Limpiar filtros
                     </button>
                 ) : null}
-            </>
+            </div>
         ) : null;
 
     return (
@@ -911,7 +880,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
 
                 {libroFiltrosInner != null ? (
                     isFiltersOpen ? (
-                        <div className="no-print hidden md:flex mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 flex-row flex-wrap gap-2 items-center">
+                        <div className="no-print hidden md:flex mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 w-full">
                             {libroFiltrosInner}
                         </div>
                     ) : null
