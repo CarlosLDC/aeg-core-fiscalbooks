@@ -23,7 +23,7 @@ export function AnnualInspectionQrSection({
   async function handleVerify() {
     const trimmed = qrCodigo.trim();
     if (!trimmed) {
-      setError('Escanee o pegue el código QR impreso por la impresora.');
+      setError('Ingrese el código extraído del QR.');
       return;
     }
 
@@ -54,26 +54,22 @@ export function AnnualInspectionQrSection({
 
   return (
     <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950/40">
-      <div>
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Comprobante QR</h3>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Tras registrar la inspección en la impresora, escanee o pegue el código QR impreso.
-          El sistema validará que el registro y la MAC correspondan al equipo.
-        </p>
-      </div>
+      <p className="text-sm text-slate-600 dark:text-slate-400">
+        Ingrese el código extraído del QR impreso por la impresora.
+      </p>
 
       <div>
         <label
           htmlFor="annual-inspection-qr-codigo"
           className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-300"
         >
-          Código QR
+          Código del QR
         </label>
-        <textarea
+        <input
           id="annual-inspection-qr-codigo"
-          rows={3}
+          type="text"
           className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm text-slate-900 outline-none transition-all focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
-          placeholder="Pegue aquí el contenido del QR impreso…"
+          placeholder="Código extraído del QR"
           value={qrCodigo}
           onChange={(e) => {
             setQrCodigo(e.target.value);
