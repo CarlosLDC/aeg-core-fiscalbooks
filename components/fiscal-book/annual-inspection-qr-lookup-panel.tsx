@@ -1,12 +1,29 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import {
   getQrLookupErrorMessage,
   lookupInspectionByQr,
 } from '@/lib/annual-inspection-qr-lookup-api';
-import { canUseQrCamera, QrCodeScanner } from '@/components/qr-code-scanner';
+import { canUseQrCamera } from '@/components/qr-code-scanner';
+import { QrScannerErrorBoundary } from '@/components/qr-scanner-error-boundary';
+
+const QrCodeScanner = dynamic(
+  () =>
+    import('@/components/qr-code-scanner').then((mod) => ({
+      default: mod.QrCodeScanner,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+        Preparando cámara…
+      </p>
+    ),
+  },
+);
 
 type InputMode = 'manual' | 'camera';
 
@@ -18,6 +35,8 @@ export function AnnualInspectionQrLookupPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraSession, setCameraSession] = useState(0);
+  const scanHandledRef = useRef(false);
 
   const runLookup = useCallback(
     async (code: string) => {
@@ -46,7 +65,8 @@ export function AnnualInspectionQrLookupPanel() {
 
   const handleScan = useCallback(
     (decodedText: string) => {
-      if (loading) return;
+      if (loading || scanHandledRef.current) return;
+      scanHandledRef.current = true;
       setQrCodigo(decodedText);
       void runLookup(decodedText);
     },
@@ -72,9 +92,11 @@ export function AnnualInspectionQrLookupPanel() {
           <button
             type="button"
             onClick={() => {
+              scanHandledRef.current = false;
               setInputMode('camera');
               setCameraError(null);
               setError(null);
+              setCameraSession((session) => session + 1);
             }}
             className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
               inputMode === 'camera'
@@ -101,9 +123,28 @@ export function AnnualInspectionQrLookupPanel() {
       <div className="mt-4">
         {inputMode === 'camera' && cameraAvailable ? (
           <>
-            <QrCodeScanner onScan={handleScan} onError={handleCameraError} />
+            <QrScannerErrorBoundary onError={handleCameraError}>
+              <QrCodeScanner
+                key={cameraSession}
+                onScan={handleScan}
+                onError={handleCameraError}
+              />
+            </QrScannerErrorBoundary>
             {cameraError ? (
-              <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{cameraError}</p>
+              <div className="mt-2 space-y-2">
+                <p className="text-sm text-amber-700 dark:text-amber-300">{cameraError}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    scanHandledRef.current = false;
+                    setCameraError(null);
+                    setCameraSession((session) => session + 1);
+                  }}
+                  className="text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  Reintentar cámara
+                </button>
+              </div>
             ) : null}
             {loading ? (
               <p className="mt-2 text-center text-sm font-medium text-slate-600 dark:text-slate-400">
