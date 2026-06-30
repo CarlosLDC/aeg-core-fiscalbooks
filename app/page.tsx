@@ -9,6 +9,7 @@ import { useUserProfile } from '@/app/layout';
 import { NoData } from '@/components/no-data';
 import { SearchIcon, ArrowRight } from '@/components/icons';
 import { printerEstatusBadgeClass, printerEstatusLabel } from '@/lib/printer-status';
+import { MIN_PARTIAL_SEARCH_LENGTH } from '@/lib/fiscal-book-search';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50] as const;
 const PAGE_SIZE_STORAGE_KEY = 'aeg-search-page-size';
@@ -108,15 +109,25 @@ export default function SearchPage() {
     }
 
     try {
-      const { data, count } = await printerService.searchPrinters(searchTerm, page, size);
+      const { data, count, exactMatch } = await printerService.searchPrintersFlexible(
+        searchTerm,
+        page,
+        size,
+        effectiveSearchType,
+      );
 
-      // Interceptar resultados exactos o vacíos para búsqueda por serial
-      if (isNewSearch && effectiveSearchType === 'serial' && searchTerm.trim() !== '') {
-        if (count === 1 && data.length > 0) {
-          router.push(`/fiscal-book/${data[0].id}`);
-          return; // Mantener loading activo mientras navega
-        } else if (count === 0) {
-          setErrorMessage('No se encontró ningún equipo fiscal con el serial indicado.');
+      if (isNewSearch && searchTerm.trim() !== '') {
+        if (exactMatch) {
+          router.push(`/fiscal-book/${exactMatch.id}`);
+          return;
+        }
+
+        if (count === 0) {
+          setErrorMessage(
+            effectiveSearchType === 'serial'
+              ? 'No se encontró ningún equipo fiscal con un serial parecido al indicado.'
+              : 'No se encontró ningún equipo fiscal con un RIF parecido al indicado.',
+          );
           setLoading(false);
           return;
         }
@@ -144,18 +155,13 @@ export default function SearchPage() {
     
     // Validar formato de serial fiscal o RIF
     if (searchTerm.trim()) {
-      if (searchType === 'serial') {
-        const serialRegex = /^[A-Z]{3}[0-9]{7}$/;
-        if (!serialRegex.test(searchTerm.trim())) {
-          setErrorMessage('El serial fiscal debe tener el formato: 3 letras mayúsculas seguidas de 7 dígitos (ej: GRA0000123)');
-          return;
-        }
-      } else if (searchType === 'rif') {
-        const rifRegex = /^[VEJPG][0-9]{7,9}$/;
-        if (!rifRegex.test(searchTerm.trim())) {
-          setErrorMessage('El RIF debe tener el formato: V/E/J/P/G seguido de 7-9 dígitos (ej: J12345678)');
-          return;
-        }
+      if (searchTerm.trim().length < MIN_PARTIAL_SEARCH_LENGTH) {
+        setErrorMessage(
+          searchType === 'serial'
+            ? 'Escribe al menos 2 caracteres del serial fiscal para buscar.'
+            : 'Escribe al menos 2 caracteres del RIF para buscar.',
+        );
+        return;
       }
     }
     
@@ -224,7 +230,7 @@ export default function SearchPage() {
             <div className="relative flex-1">
               <input
                 type="text"
-                placeholder={searchType === 'serial' ? 'Ej: GRA0000123' : 'Ej: J12345678'}
+                placeholder={searchType === 'serial' ? 'Ej: GRA0000123 o GRA' : 'Ej: J12345678 o J123'}
                 value={searchTerm}
                 onChange={(e) => handleSearchTermChange(e.target.value)}
                 className="w-full h-14 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-5 text-lg outline-none transition-all duration-300 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-300 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white placeholder:text-slate-400 font-medium font-mono"

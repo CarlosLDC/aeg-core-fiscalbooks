@@ -2,6 +2,13 @@ import {
   fetchFiscalBookByPrinterId,
   searchFiscalBooks,
 } from '@/lib/fiscal-books-api';
+import {
+  filterPrintersBySearch,
+  findExactSearchMatch,
+  isBackendExactSearch,
+  paginatePrinters,
+  type FiscalBookSearchType,
+} from '@/lib/fiscal-book-search';
 import { toBooleanOrNull, toNumber, toStringOrNull } from '@/lib/api-contract';
 import {
   AnnualInspection,
@@ -388,12 +395,72 @@ export const printerService = {
     };
   },
 
+  fetchAllVisiblePrinters: async (): Promise<FiscalPrinter[]> => {
+    const pageSize = 100;
+    let page = 1;
+    let total = Number.POSITIVE_INFINITY;
+    const all: FiscalPrinter[] = [];
+
+    while (all.length < total) {
+      const result = await searchFiscalBooks('', page, pageSize);
+      const batch = result.items.map(mapSummaryToFiscalPrinter);
+      all.push(...batch);
+      total = result.total;
+      if (batch.length === 0) break;
+      page += 1;
+    }
+
+    return all;
+  },
+
+  searchPrintersFlexible: async function (
+    query: string,
+    page: number = 1,
+    pageSize: number = 10,
+    searchType: FiscalBookSearchType = 'serial',
+    _opts?: { distribuidoraId?: number | null },
+  ): Promise<{
+    data: FiscalPrinter[];
+    count: number;
+    exactMatch: FiscalPrinter | null;
+  }> {
+    const trimmed = query.trim();
+
+    if (!trimmed) {
+      const result = await this.searchPrinters('', page, pageSize);
+      return { ...result, exactMatch: null };
+    }
+
+    if (isBackendExactSearch(trimmed, searchType)) {
+      const probe = await this.searchPrinters(trimmed, 1, 100);
+      const full =
+        probe.count <= probe.data.length
+          ? probe
+          : await this.searchPrinters(trimmed, 1, Math.min(probe.count, 100));
+
+      return {
+        data: paginatePrinters(full.data, page, pageSize),
+        count: full.count,
+        exactMatch: findExactSearchMatch(full.data, trimmed, searchType),
+      };
+    }
+
+    const visible = await this.fetchAllVisiblePrinters();
+    const filtered = filterPrintersBySearch(visible, trimmed, searchType);
+
+    return {
+      data: paginatePrinters(filtered, page, pageSize),
+      count: filtered.length,
+      exactMatch: findExactSearchMatch(filtered, trimmed, searchType),
+    };
+  },
+
   searchByRif: async function (
     rif: string,
     page: number = 1,
     pageSize: number = 10,
     _opts?: { distribuidoraId?: number | null },
   ): Promise<{ data: FiscalPrinter[]; count: number }> {
-    return this.searchPrinters(rif, page, pageSize);
+    return this.searchPrintersFlexible(rif, page, pageSize, 'rif');
   },
 };
