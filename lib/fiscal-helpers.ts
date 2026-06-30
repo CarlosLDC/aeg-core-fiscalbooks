@@ -74,7 +74,7 @@ export function getActiveSealSerial(printer: FiscalPrinter): string | null {
 }
 
 /** Número de registro en el libro (1..n), único por impresora y tipo de historial. */
-export function assignLibroNumbers<T extends { libroNumber?: number }>(
+export function assignLibroNumbers<T>(
   records: T[],
 ): Array<T & { libroNumber: number }> {
   return records.map((record, index) => ({
