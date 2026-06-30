@@ -906,8 +906,8 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                                     Máquina Fiscal - Providencia SENIAT 0141
                                 </p>
                             </div>
-                            <div className="text-right flex flex-col items-end border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2 bg-slate-50 dark:bg-slate-900 transition-colors shadow-sm">
-                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-0.5">Serial Fiscal</span>
+                            <div className="text-right flex flex-col items-end shrink-0 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2 bg-slate-50 dark:bg-slate-900 transition-colors shadow-sm">
+                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-0.5 whitespace-nowrap">Serial Fiscal</span>
                                 <span className="font-mono text-base font-black text-slate-900 dark:text-white leading-none">{printer.serial_fiscal}</span>
                             </div>
                         </div>
