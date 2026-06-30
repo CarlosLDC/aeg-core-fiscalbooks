@@ -694,8 +694,8 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
     const filterTo = viewMode === 'tech' ? techFilterTo : inspFilterTo;
     const searchPlaceholder =
         viewMode === 'tech'
-            ? 'Buscar (falla, técnico, centro, ID…)'
-            : 'Buscar (observaciones, inspector, centro…)';
+            ? 'Ej: mantenimiento'
+            : 'Ej: inspector';
     const hasActiveFilters = Boolean(filterQuery || filterFrom || filterTo);
 
     const libroFiltrosInner =

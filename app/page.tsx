@@ -230,7 +230,7 @@ export default function SearchPage() {
             <div className="relative flex-1">
               <input
                 type="text"
-                placeholder={searchType === 'serial' ? 'Ej: GRA0000123 o GRA' : 'Ej: J12345678 o J123'}
+                placeholder={searchType === 'serial' ? 'Ej: GRA0000123' : 'Ej: J12345678'}
                 value={searchTerm}
                 onChange={(e) => handleSearchTermChange(e.target.value)}
                 className="w-full h-14 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-5 text-lg outline-none transition-all duration-300 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-300 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white placeholder:text-slate-400 font-medium font-mono"
