@@ -6,7 +6,7 @@ import { useUserProfile } from '@/app/layout';
 import { canCreateAnnualInspection, canCreateTechnicalService } from '@/lib/fiscal-permissions';
 import { FiscalPrinter, TechnicalReview, AnnualInspection } from '@/lib/types';
 import { printerService } from '@/lib/printer-service';
-import { truncateVersion, getActiveSealSerial, formatRegistroCreado } from '@/lib/fiscal-helpers';
+import { truncateVersion, getActiveSealSerial, formatRegistroCreado, fiscalRecordInDateRange } from '@/lib/fiscal-helpers';
 import { ArrowLeft, ArrowRight, DownloadIcon, MenuIcon, XIcon, PlusIcon } from '@/components/icons';
 import { InfoPage } from '@/components/fiscal-book/info-page';
 import { SingleTechSheet } from '@/components/fiscal-book/tech-sheet';
@@ -28,9 +28,11 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
     const [currentPage, setCurrentPage] = useState(0);
 
     const [techFilterQuery, setTechFilterQuery] = useState('');
-    const [techFilterYear, setTechFilterYear] = useState<string>('all');
+    const [techFilterFrom, setTechFilterFrom] = useState('');
+    const [techFilterTo, setTechFilterTo] = useState('');
     const [inspFilterQuery, setInspFilterQuery] = useState('');
-    const [inspFilterYear, setInspFilterYear] = useState<string>('all');
+    const [inspFilterFrom, setInspFilterFrom] = useState('');
+    const [inspFilterTo, setInspFilterTo] = useState('');
     const [isDownloading, setIsDownloading] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -67,44 +69,21 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
         }
         setCurrentPage(idx);
         setTechFilterQuery('');
-        setTechFilterYear('all');
+        setTechFilterFrom('');
+        setTechFilterTo('');
         setInspFilterQuery('');
-        setInspFilterYear('all');
+        setInspFilterFrom('');
+        setInspFilterTo('');
         router.replace(`/fiscal-book/${id}`, { scroll: false });
     }, [printer, queryString, id, router]);
-
-    const techYearOptions = useMemo(() => {
-        if (!printer) return [] as string[];
-        const years = new Set<string>();
-        for (const r of printer.technicalReviews) {
-            const src = r.createdAt || r.date;
-            if (src && typeof src === 'string' && src.length >= 4) {
-                years.add(src.slice(0, 4));
-            }
-        }
-        return [...years].sort();
-    }, [printer]);
-
-    const inspYearOptions = useMemo(() => {
-        if (!printer) return [] as string[];
-        const years = new Set<string>();
-        for (const r of printer.annualInspections) {
-            const src = r.createdAt || r.date;
-            if (src && typeof src === 'string' && src.length >= 4) {
-                years.add(src.slice(0, 4));
-            }
-        }
-        return [...years].sort();
-    }, [printer]);
 
     const filteredTechRecords = useMemo(() => {
         if (!printer) return [];
         let list = printer.technicalReviews;
-        if (techFilterYear !== 'all') {
-            list = list.filter((r) => {
-                const src = r.createdAt || r.date;
-                return src && String(src).startsWith(techFilterYear);
-            });
+        if (techFilterFrom || techFilterTo) {
+            list = list.filter((r) =>
+                fiscalRecordInDateRange(r.createdAt || r.date, techFilterFrom, techFilterTo),
+            );
         }
         const q = techFilterQuery.trim().toLowerCase();
         if (q) {
@@ -118,16 +97,15 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
             );
         }
         return list;
-    }, [printer, techFilterYear, techFilterQuery]);
+    }, [printer, techFilterFrom, techFilterTo, techFilterQuery]);
 
     const filteredInspectionRecords = useMemo(() => {
         if (!printer) return [];
         let list = printer.annualInspections;
-        if (inspFilterYear !== 'all') {
-            list = list.filter((r) => {
-                const src = r.createdAt || r.date;
-                return src && String(src).startsWith(inspFilterYear);
-            });
+        if (inspFilterFrom || inspFilterTo) {
+            list = list.filter((r) =>
+                fiscalRecordInDateRange(r.createdAt || r.date, inspFilterFrom, inspFilterTo),
+            );
         }
         const q = inspFilterQuery.trim().toLowerCase();
         if (q) {
@@ -141,7 +119,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
             );
         }
         return list;
-    }, [printer, inspFilterYear, inspFilterQuery]);
+    }, [printer, inspFilterFrom, inspFilterTo, inspFilterQuery]);
     
     // Auto-scroll to top on page or tab change
     useEffect(() => {
@@ -706,6 +684,9 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
         </div>
     );
 
+    const filterDateInputClass =
+        'w-full min-w-0 px-3 py-2 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white';
+
     const libroFiltrosInner =
         hasLibroFilters ? (
             <>
@@ -724,21 +705,38 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                             }}
                             className="w-full md:flex-1 md:min-w-[160px] px-3 py-2 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400"
                         />
-                        <select
-                            value={techFilterYear}
-                            onChange={(e) => {
-                                setTechFilterYear(e.target.value);
-                                setCurrentPage(0);
-                            }}
-                            className="w-full md:w-auto md:min-w-[120px] px-3 py-2 rounded-lg text-sm font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-                        >
-                            <option value="all">Todos los años</option>
-                            {techYearOptions.map((y) => (
-                                <option key={y} value={y}>
-                                    {y}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="flex w-full md:w-auto flex-col gap-2 sm:flex-row">
+                            <label className="flex min-w-[9.5rem] flex-1 flex-col gap-1">
+                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                    Desde
+                                </span>
+                                <input
+                                    type="date"
+                                    value={techFilterFrom}
+                                    max={techFilterTo || undefined}
+                                    onChange={(e) => {
+                                        setTechFilterFrom(e.target.value);
+                                        setCurrentPage(0);
+                                    }}
+                                    className={filterDateInputClass}
+                                />
+                            </label>
+                            <label className="flex min-w-[9.5rem] flex-1 flex-col gap-1">
+                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                    Hasta
+                                </span>
+                                <input
+                                    type="date"
+                                    value={techFilterTo}
+                                    min={techFilterFrom || undefined}
+                                    onChange={(e) => {
+                                        setTechFilterTo(e.target.value);
+                                        setCurrentPage(0);
+                                    }}
+                                    className={filterDateInputClass}
+                                />
+                            </label>
+                        </div>
                     </>
                 ) : (
                     <>
@@ -752,33 +750,52 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                             }}
                             className="w-full md:flex-1 md:min-w-[160px] px-3 py-2 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400"
                         />
-                        <select
-                            value={inspFilterYear}
-                            onChange={(e) => {
-                                setInspFilterYear(e.target.value);
-                                setCurrentPage(0);
-                            }}
-                            className="w-full md:w-auto md:min-w-[120px] px-3 py-2 rounded-lg text-sm font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-                        >
-                            <option value="all">Todos los años</option>
-                            {inspYearOptions.map((y) => (
-                                <option key={y} value={y}>
-                                    {y}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="flex w-full md:w-auto flex-col gap-2 sm:flex-row">
+                            <label className="flex min-w-[9.5rem] flex-1 flex-col gap-1">
+                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                    Desde
+                                </span>
+                                <input
+                                    type="date"
+                                    value={inspFilterFrom}
+                                    max={inspFilterTo || undefined}
+                                    onChange={(e) => {
+                                        setInspFilterFrom(e.target.value);
+                                        setCurrentPage(0);
+                                    }}
+                                    className={filterDateInputClass}
+                                />
+                            </label>
+                            <label className="flex min-w-[9.5rem] flex-1 flex-col gap-1">
+                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                    Hasta
+                                </span>
+                                <input
+                                    type="date"
+                                    value={inspFilterTo}
+                                    min={inspFilterFrom || undefined}
+                                    onChange={(e) => {
+                                        setInspFilterTo(e.target.value);
+                                        setCurrentPage(0);
+                                    }}
+                                    className={filterDateInputClass}
+                                />
+                            </label>
+                        </div>
                     </>
                 )}
                 {(viewMode === 'tech'
-                    ? techFilterQuery || techFilterYear !== 'all'
-                    : inspFilterQuery || inspFilterYear !== 'all') ? (
+                    ? techFilterQuery || techFilterFrom || techFilterTo
+                    : inspFilterQuery || inspFilterFrom || inspFilterTo) ? (
                     <button
                         type="button"
                         onClick={() => {
                             setTechFilterQuery('');
-                            setTechFilterYear('all');
+                            setTechFilterFrom('');
+                            setTechFilterTo('');
                             setInspFilterQuery('');
-                            setInspFilterYear('all');
+                            setInspFilterFrom('');
+                            setInspFilterTo('');
                             setCurrentPage(0);
                         }}
                         className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline px-2 self-start md:self-auto"

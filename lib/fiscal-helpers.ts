@@ -35,6 +35,25 @@ export function chunkArray<T>(array: T[], size: number): T[][] {
   return result;
 }
 
+export function fiscalRecordDateKey(value: string | null | undefined): string | null {
+  if (!value || typeof value !== 'string') return null;
+  const day = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null;
+}
+
+export function fiscalRecordInDateRange(
+  value: string | null | undefined,
+  from: string,
+  to: string,
+): boolean {
+  if (!from && !to) return true;
+  const key = fiscalRecordDateKey(value);
+  if (!key) return false;
+  if (from && key < from) return false;
+  if (to && key > to) return false;
+  return true;
+}
+
 export function truncateVersion(version: string | null | undefined): string | null {
   if (!version) return null;
   const parts = version.split('.');
