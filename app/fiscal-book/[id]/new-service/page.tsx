@@ -272,13 +272,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
         throw new Error('La fecha y hora del Reporte Z final no puede ser anterior al Reporte Z inicial.');
       }
 
-      // Reportes Z dentro del período de servicio (inclusive)
-      if (zStart.getTime() < start.getTime() || zEnd.getTime() > end.getTime()) {
-        throw new Error(
-          'Las fechas y horas de los Reportes Z deben estar dentro del período de inicio y fin del servicio.'
-        );
-      }
-
       if (numZFinal < numZInicial) {
         throw new Error('El número de Reporte Z final no puede ser menor al inicial.');
       }
