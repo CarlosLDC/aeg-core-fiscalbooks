@@ -9,17 +9,48 @@ import type {
 
 const BASE = '/api/mqtt/annual-inspection';
 
+export const ANNUAL_INSPECTION_STA_INF_TIMEOUT_MS = 1000;
+
+export const ANNUAL_INSPECTION_STA_INF_TIMEOUT_MESSAGE =
+  'La impresora no respondió a tiempo. Verifique que esté encendida y conectada a la red, e intente nuevamente.';
+
 export function getAnnualInspectionMqttErrorMessage(error: unknown): string {
   return messageFromUnknownError(error);
+}
+
+export function getAnnualInspectionStaInfErrorMessage(error: unknown): string {
+  if (error instanceof DOMException && error.name === 'AbortError') {
+    return ANNUAL_INSPECTION_STA_INF_TIMEOUT_MESSAGE;
+  }
+
+  const message = messageFromUnknownError(error).toLowerCase();
+  if (
+    message.includes('tiempo de espera agotado') ||
+    message.includes('no respondió') ||
+    message.includes('timeout') ||
+    message.includes('abort')
+  ) {
+    return ANNUAL_INSPECTION_STA_INF_TIMEOUT_MESSAGE;
+  }
+
+  return getAnnualInspectionMqttErrorMessage(error);
 }
 
 export async function requestAnnualInspectionStaInf(input: {
   printerId: number;
 }): Promise<AnnualInspectionStaInfResponse> {
-  return apiFetch<AnnualInspectionStaInfResponse>(`${BASE}/sta-inf`, {
-    method: 'POST',
-    body: JSON.stringify(input),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ANNUAL_INSPECTION_STA_INF_TIMEOUT_MS);
+
+  try {
+    return await apiFetch<AnnualInspectionStaInfResponse>(`${BASE}/sta-inf`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export async function requestAnnualInspectionTestInvoice(input: {

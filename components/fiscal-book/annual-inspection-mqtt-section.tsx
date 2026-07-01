@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AnnualInspectionChecklistPanel } from '@/components/fiscal-book/annual-inspection-checklist-panel';
 import {
   getAnnualInspectionMqttErrorMessage,
+  getAnnualInspectionStaInfErrorMessage,
   requestAnnualInspectionStaInf,
   requestAnnualInspectionTestCreditNote,
   requestAnnualInspectionTestInvoice,
@@ -59,7 +60,7 @@ export function AnnualInspectionMqttSection({
         }),
       );
     } catch (err) {
-      setSectionError(getAnnualInspectionMqttErrorMessage(err));
+      setSectionError(getAnnualInspectionStaInfErrorMessage(err));
     } finally {
       setStarting(false);
     }
