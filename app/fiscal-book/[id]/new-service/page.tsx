@@ -574,19 +574,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
 
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                  Fecha Reporte Z Inicial
-                </label>
-                <input
-                  type="date"
-                  required
-                  className={dateInputClass}
-                  value={fechaZInicialDate}
-                  onChange={(e) => setFechaZInicialDate(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
                   Reporte Z Final
                 </label>
                 <div className="relative w-full">
@@ -603,6 +590,21 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                     onChange={(e) => setReporteZFinal(e.target.value)}
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Fecha Reporte Z Inicial
+                </label>
+                <input
+                  type="date"
+                  required
+                  className={dateInputClass}
+                  value={fechaZInicialDate}
+                  onChange={(e) => setFechaZInicialDate(e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">
