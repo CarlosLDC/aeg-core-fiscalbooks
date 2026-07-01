@@ -445,37 +445,35 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
           aria-disabled={!tecnicoInfo}
         >
           <ServiceFormSection>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                  Técnico Responsable
-                </label>
-                {tecnicoInfo ? (
-                  <div className={readOnlyFieldClass}>
-                    {tecnicoInfo.usuario_nombre} (V{tecnicoInfo.usuario_cedula?.replace(/-/g, '')})
-                  </div>
-                ) : (
-                  <div className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-slate-400">
-                    Sin datos de técnico
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                  Centro de servicio
-                </label>
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                Técnico Responsable
+              </label>
+              {tecnicoInfo ? (
                 <div className={readOnlyFieldClass}>
-                  {tecnicoInfo
-                    ? tecnicoInfo.centro_servicio_id != null
-                      ? formatCentroDisplay(tecnicoInfo)
-                      : authProfile?.role === 'ADMIN'
-                        ? formatManufacturerCompanyDisplay()
-                        : '—'
-                    : idCentroServicio
-                      ? `Centro #${idCentroServicio}`
-                      : '—'}
+                  {tecnicoInfo.usuario_nombre} (V{tecnicoInfo.usuario_cedula?.replace(/-/g, '')})
                 </div>
+              ) : (
+                <div className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-slate-400">
+                  Sin datos de técnico
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                Centro de Servicio
+              </label>
+              <div className={readOnlyFieldClass}>
+                {tecnicoInfo
+                  ? tecnicoInfo.centro_servicio_id != null
+                    ? formatCentroDisplay(tecnicoInfo)
+                    : authProfile?.role === 'ADMIN'
+                      ? formatManufacturerCompanyDisplay()
+                      : '—'
+                  : idCentroServicio
+                    ? `Centro #${idCentroServicio}`
+                    : '—'}
               </div>
             </div>
           </ServiceFormSection>
@@ -498,7 +496,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
                   Fecha de Inicio
@@ -522,6 +520,9 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                   onChange={(e) => setFechaInicioTime(e.target.value)}
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
                   Fecha de Fin
@@ -623,24 +624,26 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
           <ServiceFormSeparator />
 
           <ServiceFormSection>
-            <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                Costo Total
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <span className="text-slate-400 dark:text-slate-500 font-bold">$</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Costo Total
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <span className="text-slate-400 dark:text-slate-500 font-bold">$</span>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium font-mono text-slate-900 dark:text-white placeholder:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder="0.00"
+                    value={costo}
+                    onChange={(e) => setCosto(e.target.value)}
+                  />
                 </div>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium font-mono text-slate-900 dark:text-white placeholder:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  placeholder="0.00"
-                  value={costo}
-                  onChange={(e) => setCosto(e.target.value)}
-                />
               </div>
             </div>
 
