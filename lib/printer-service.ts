@@ -13,6 +13,7 @@ import { isFiscalBookListedPrinter, filterPrintersByListingStatus } from '@/lib/
 import type { PrinterListingFilter } from '@/lib/printer-status';
 import { toBooleanOrNull, toNumber, toStringOrNull } from '@/lib/api-contract';
 import { assignLibroNumbers } from '@/lib/fiscal-helpers';
+import { mergeTechnicalServiceDescription } from '@/lib/technical-service-description';
 import { withManufacturerCompanyFallback } from '@/lib/manufacturer-company';
 import {
   AnnualInspection,
@@ -249,9 +250,11 @@ function mapTechnicalService(
   s: FiscalBookTechnicalServiceResponse,
 ): Omit<TechnicalReview, 'libroNumber'> {
   const failure =
-    pickString(s, 'reportedFailure', 'reported_failure', 'description', 'descripcion') ??
-    s.reportedFailure ??
-    '';
+    mergeTechnicalServiceDescription(
+      pickString(s, 'reportedFailure', 'reported_failure', 'description', 'descripcion') ??
+        s.reportedFailure,
+      pickString(s, 'notes', 'observations', 'observaciones') ?? s.notes,
+    ) || '';
   const startAt = pickString(s, 'startAt', 'start_at') ?? s.startAt;
   const endAt = pickString(s, 'endAt', 'end_at') ?? s.endAt;
   const createdAt = pickString(s, 'createdAt', 'created_at') ?? s.createdAt;
@@ -307,7 +310,7 @@ function mapTechnicalService(
       s.installedSealSerial ??
       null,
     description: failure,
-    observaciones: pickString(s, 'notes', 'observations', 'observaciones') ?? s.notes ?? null,
+    observaciones: null,
     costo: pickNumber(s, 'cost', 'costo'),
     urlFotos: photoUrls,
     partsReplaced: [],

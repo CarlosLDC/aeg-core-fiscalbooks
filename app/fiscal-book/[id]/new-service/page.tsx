@@ -106,7 +106,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
   
   // Texts & Numbers
   const [fallaReportada, setFallaReportada] = useState('');
-  const [observaciones, setObservaciones] = useState('');
   const [reporteZInicial, setReporteZInicial] = useState('');
   const [reporteZFinal, setReporteZFinal] = useState('');
   const [costo, setCosto] = useState('');
@@ -206,7 +205,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       const cleanId = Number(id.replace('mock-p-', '').replace('fp-', ''));
 
       // Strict Validation for NOT NULL fields
-      if (!tecnicoInfo?.userId || !fechaSolicitud || !fallaReportada ||
+      if (!tecnicoInfo?.userId || !fechaSolicitud || !fallaReportada.trim() ||
           !fechaInicioDate || !fechaInicioTime || !fechaFinDate || !fechaFinTime ||
           !fechaZInicialDate || !fechaZFinalDate ||
           !reporteZInicial || !reporteZFinal || !costo) {
@@ -322,7 +321,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
         userId: numUserId,
         serviceCenterId: centroOk ? numCentro : null,
         sealTampered: precintoViolentado,
-        notes: observaciones || null,
+        notes: null,
         startAt: toIsoUtc(start),
         endAt: toIsoUtc(end),
         photoUrls: [],
@@ -331,7 +330,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
         initialZReport: numZInicial,
         finalZReport: numZFinal,
         cost: numCosto,
-        reportedFailure: fallaReportada,
+        reportedFailure: fallaReportada.trim(),
         requestDate: fechaSolicitud.trim(),
         initialZDate: manualZReportDateToIso(zStart),
         finalZDate: manualZReportDateToIso(zEnd),
@@ -649,28 +648,15 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
 
             <div className="space-y-4">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                Falla Reportada
+                Falla Reportada y Acción Realizada
               </label>
               <textarea
                 required
-                rows={3}
+                rows={5}
                 className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white placeholder:text-slate-400"
-                placeholder="Describa la falla reportada o motivo del servicio..."
+                placeholder="Describa la falla reportada, el trabajo realizado y cualquier observación relevante..."
                 value={fallaReportada}
                 onChange={(e) => setFallaReportada(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                Observaciones (Opcional)
-              </label>
-              <textarea
-                rows={3}
-                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white placeholder:text-slate-400"
-                placeholder="Cualquier observación adicional de lo realizado..."
-                value={observaciones}
-                onChange={(e) => setObservaciones(e.target.value)}
               />
             </div>
 
