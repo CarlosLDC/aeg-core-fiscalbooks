@@ -17,6 +17,10 @@ import { ArrowLeft } from '@/components/icons';
 import { SuccessModal } from '@/components/success-modal';
 import { FiscalSealSelect } from '@/components/fiscal-seal-select';
 import {
+  parseManualZReportDate,
+  manualZReportDateToIso,
+} from '@/lib/technical-service-z-dates';
+import {
   parseLocalDateOnly,
   parseLocalDateTime,
   toIsoUtc,
@@ -77,10 +81,8 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
   const [fechaFinTime, setFechaFinTime] = useState('');
 
   const [fechaZInicialDate, setFechaZInicialDate] = useState('');
-  const [fechaZInicialTime, setFechaZInicialTime] = useState('');
 
   const [fechaZFinalDate, setFechaZFinalDate] = useState('');
-  const [fechaZFinalTime, setFechaZFinalTime] = useState('');
   
   // Texts & Numbers
   const [fallaReportada, setFallaReportada] = useState('');
@@ -186,7 +188,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       // Strict Validation for NOT NULL fields
       if (!tecnicoInfo?.userId || !fechaSolicitud || !fallaReportada ||
           !fechaInicioDate || !fechaInicioTime || !fechaFinDate || !fechaFinTime ||
-          !fechaZInicialDate || !fechaZInicialTime || !fechaZFinalDate || !fechaZFinalTime ||
+          !fechaZInicialDate || !fechaZFinalDate ||
           !reporteZInicial || !reporteZFinal || !costo) {
         throw new Error('Todos los campos marcados con (*) son obligatorios según el reglamento.');
       }
@@ -232,17 +234,15 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       const finSrv = parseLocalDateTime(fechaFinDate, fechaFinTime, 'Fin de servicio');
       if (!finSrv.ok) throw new Error(finSrv.error);
 
-      const zIni = parseLocalDateTime(
+      const zIni = parseManualZReportDate(
         fechaZInicialDate,
-        fechaZInicialTime,
-        'Fecha y hora del Reporte Z inicial'
+        'Fecha del Reporte Z inicial',
       );
       if (!zIni.ok) throw new Error(zIni.error);
 
-      const zFin = parseLocalDateTime(
+      const zFin = parseManualZReportDate(
         fechaZFinalDate,
-        fechaZFinalTime,
-        'Fecha y hora del Reporte Z final'
+        'Fecha del Reporte Z final',
       );
       if (!zFin.ok) throw new Error(zFin.error);
 
@@ -268,9 +268,9 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
         throw new Error('La fecha de solicitud no puede ser posterior al fin del servicio.');
       }
 
-      // Reportes Z: orden temporal
-      if (zEnd.getTime() < zStart.getTime()) {
-        throw new Error('La fecha y hora del Reporte Z final no puede ser anterior al Reporte Z inicial.');
+      // Reportes Z: orden temporal (solo fecha en captura manual)
+      if (zFin.value.getTime() < zIni.value.getTime()) {
+        throw new Error('La fecha del Reporte Z final no puede ser anterior al Reporte Z inicial.');
       }
 
       if (numZFinal < numZInicial) {
@@ -313,8 +313,8 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
         cost: numCosto,
         reportedFailure: fallaReportada,
         requestDate: fechaSolicitud.trim(),
-        initialZDate: toIsoUtc(zStart),
-        finalZDate: toIsoUtc(zEnd),
+        initialZDate: manualZReportDateToIso(zStart),
+        finalZDate: manualZReportDateToIso(zEnd),
       });
 
       setSuccessRecordId(String(created.id));
@@ -534,18 +534,16 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                 </div>
               </div>
               
-              <div className="flex gap-2 items-center">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1 mb-2">
+                  Fecha del Reporte Z Inicial
+                </label>
                 <input
                   type="date"
                   required
-                  className="w-2/3 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
                   value={fechaZInicialDate}
                   onChange={(e) => setFechaZInicialDate(e.target.value)}
-                />
-                <TimeInput
-                  required
-                  value={fechaZInicialTime}
-                  onChange={(e) => setFechaZInicialTime(e.target.value)}
                 />
               </div>
             </div>
@@ -570,18 +568,16 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                 </div>
               </div>
               
-              <div className="flex gap-2 items-center">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1 mb-2">
+                  Fecha del Reporte Z Final
+                </label>
                 <input
                   type="date"
                   required
-                  className="w-2/3 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
                   value={fechaZFinalDate}
                   onChange={(e) => setFechaZFinalDate(e.target.value)}
-                />
-                <TimeInput
-                  required
-                  value={fechaZFinalTime}
-                  onChange={(e) => setFechaZFinalTime(e.target.value)}
                 />
               </div>
             </div>

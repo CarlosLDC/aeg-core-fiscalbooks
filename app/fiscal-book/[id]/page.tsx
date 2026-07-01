@@ -7,6 +7,7 @@ import { canCreateAnnualInspection, canCreateTechnicalService } from '@/lib/fisc
 import { FiscalPrinter, TechnicalReview, AnnualInspection } from '@/lib/types';
 import { printerService } from '@/lib/printer-service';
 import { truncateVersion, getActiveSealSerial, formatRegistroCreado, fiscalRecordInDateRange } from '@/lib/fiscal-helpers';
+import { formatZReportTimestamp } from '@/lib/technical-service-z-dates';
 import { ArrowLeft, ArrowRight, DownloadIcon, MenuIcon, XIcon, PlusIcon } from '@/components/icons';
 import { InfoPage } from '@/components/fiscal-book/info-page';
 import { SingleTechSheet } from '@/components/fiscal-book/tech-sheet';
@@ -455,9 +456,9 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                     drawField('Fecha de Inicio', tr.startDate ?? tr.date, margin, y); y += 6;
                     drawField('Fecha de Fin', tr.endDate, margin, y); y += 6;
                     drawField('Primera Reporte Z', tr.zReportStart, margin, y); y += 6;
-                    drawField('Fecha y Hora de Primer Reporte Z', tr.zReportTimestampStart, margin, y); y += 6;
+                    drawField('Fecha de Primer Reporte Z', formatZReportTimestamp(tr.zReportTimestampStart) ?? '', margin, y); y += 6;
                     drawField('Último Reporte Z', tr.zReportEnd, margin, y); y += 6;
-                    drawField('Fecha y Hora de Último Reporte Z', tr.zReportTimestampEnd, margin, y); y += 10;
+                    drawField('Fecha de Último Reporte Z', formatZReportTimestamp(tr.zReportTimestampEnd) ?? '', margin, y); y += 10;
 
                     checkPageBreak();
 

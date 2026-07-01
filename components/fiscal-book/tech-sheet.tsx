@@ -1,6 +1,6 @@
 import type { TechnicalReview, FiscalPrinter } from '@/lib/types';
 import { NoData } from '@/components/no-data';
-import { formatTimestamp } from '@/lib/fiscal-helpers';
+import { formatZReportTimestamp } from '@/lib/technical-service-z-dates';
 
 export function SingleTechSheet({ review, printer }: { review: TechnicalReview; printer: FiscalPrinter }) {
   return (
@@ -34,16 +34,16 @@ export function SingleTechSheet({ review, printer }: { review: TechnicalReview; 
               <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{review.zReportStart || <NoData />}</p>
             </div>
             <div>
-              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Fecha y Hora de Primer Reporte Z</label>
-              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{formatTimestamp(review.zReportTimestampStart) || <NoData />}</p>
+              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Fecha de Primer Reporte Z</label>
+              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{formatZReportTimestamp(review.zReportTimestampStart) || <NoData />}</p>
             </div>
             <div>
               <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Último Reporte Z</label>
               <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{review.zReportEnd || <NoData />}</p>
             </div>
             <div>
-              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Fecha y Hora de Último Reporte Z</label>
-              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{formatTimestamp(review.zReportTimestampEnd) || <NoData />}</p>
+              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Fecha de Último Reporte Z</label>
+              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{formatZReportTimestamp(review.zReportTimestampEnd) || <NoData />}</p>
             </div>
           </div>
         </div>
