@@ -654,7 +654,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
               </label>
               <textarea
                 required
-                rows={5}
+                rows={3}
                 className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white placeholder:text-slate-400"
                 placeholder="Describa la falla reportada, el trabajo realizado y cualquier observación relevante..."
                 value={fallaReportada}
