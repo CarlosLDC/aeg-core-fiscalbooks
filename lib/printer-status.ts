@@ -73,3 +73,20 @@ export function isFiscalBookListedPrinter(
   const normalized = normalizePrinterEstatus(value);
   return normalized === 'enajenada' || normalized === 'desincorporada';
 }
+
+export type PrinterListingFilter = 'all' | 'activa' | 'retirada';
+
+export function filterPrintersByListingStatus<T extends { estatus: string }>(
+  printers: T[],
+  filter: PrinterListingFilter,
+): T[] {
+  if (filter === 'all') return printers;
+  if (filter === 'activa') {
+    return printers.filter(
+      (printer) => normalizePrinterEstatus(printer.estatus) === 'enajenada',
+    );
+  }
+  return printers.filter(
+    (printer) => normalizePrinterEstatus(printer.estatus) === 'desincorporada',
+  );
+}

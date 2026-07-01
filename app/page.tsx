@@ -8,11 +8,16 @@ import { useRouter } from 'next/navigation';
 import { useUserProfile } from '@/app/layout';
 import { NoData } from '@/components/no-data';
 import { SearchIcon, ArrowRight } from '@/components/icons';
-import { printerEstatusBadgeClass, printerEstatusLabel } from '@/lib/printer-status';
+import { printerEstatusBadgeClass, printerEstatusLabel, type PrinterListingFilter } from '@/lib/printer-status';
 import { MIN_PARTIAL_SEARCH_LENGTH } from '@/lib/fiscal-book-search';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50] as const;
 const PAGE_SIZE_STORAGE_KEY = 'aeg-search-page-size';
+const LISTING_FILTER_OPTIONS: { value: PrinterListingFilter; label: string }[] = [
+  { value: 'all', label: 'Todas' },
+  { value: 'activa', label: 'Activas' },
+  { value: 'retirada', label: 'Retiradas' },
+];
 /** Altura aproximada del header sticky + margen para scroll manual */
 const SCROLL_HEADER_OFFSET_PX = 88;
 
@@ -61,6 +66,7 @@ export default function SearchPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [pageSize, setPageSize] = useState(5);
+  const [listingFilter, setListingFilter] = useState<PrinterListingFilter>('all');
 
   useEffect(() => {
     setPageSize(readStoredPageSize());
@@ -92,11 +98,13 @@ export default function SearchPage() {
   const performSearch = async (
     page: number,
     isNewSearch: boolean = false,
-    pageSizeOverride?: number
+    pageSizeOverride?: number,
+    listingFilterOverride?: PrinterListingFilter,
   ) => {
     if (authLoading) return;
 
     const effectiveSearchType = isNewSearch ? searchType : searchedType;
+    const effectiveListingFilter = listingFilterOverride ?? listingFilter;
 
     const size = pageSizeOverride ?? pageSize;
 
@@ -114,6 +122,7 @@ export default function SearchPage() {
         page,
         size,
         effectiveSearchType,
+        effectiveListingFilter,
       );
 
       if (isNewSearch && searchTerm.trim() !== '') {
@@ -177,6 +186,13 @@ export default function SearchPage() {
     persistPageSize(next);
     if (hasSearched) {
       void performSearch(1, false, next);
+    }
+  };
+
+  const handleListingFilterChange = (next: PrinterListingFilter) => {
+    setListingFilter(next);
+    if (hasSearched) {
+      void performSearch(1, false, undefined, next);
     }
   };
 
@@ -293,8 +309,25 @@ export default function SearchPage() {
           className="animate-in fade-in slide-in-from-bottom-4 duration-500 scroll-mt-[5.5rem]"
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 px-2">
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">Resultados Centrales</h2>
+              <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl w-full sm:w-auto border border-slate-200 dark:border-slate-800">
+                {LISTING_FILTER_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    disabled={loading}
+                    onClick={() => handleListingFilterChange(option.value)}
+                    className={`flex-1 sm:flex-none sm:min-w-[5.5rem] px-3 py-2 rounded-lg font-medium text-xs uppercase tracking-wide transition-all duration-200 disabled:opacity-50 ${
+                      listingFilter === option.value
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
             {/* En móvil (flex-col) el default de flex items es stretch; evitamos que las pills se estiren a 100% ancho */}
             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center items-start gap-3 sm:gap-2">
@@ -414,7 +447,11 @@ export default function SearchPage() {
               </>
             ) : !loading && results.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-12 text-center text-slate-500 dark:text-slate-400 transition-colors">
-                No se encontraron equipos fiscales con los parámetros indicados. Prueba dejando el campo vacío para ver todos los registros.
+                {listingFilter === 'activa'
+                  ? 'No se encontraron equipos activos con los parámetros indicados.'
+                  : listingFilter === 'retirada'
+                    ? 'No se encontraron equipos retirados con los parámetros indicados.'
+                    : 'No se encontraron equipos fiscales con los parámetros indicados. Prueba dejando el campo vacío para ver todos los registros.'}
               </div>
             ) : null}
           </div>

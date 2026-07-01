@@ -9,7 +9,8 @@ import {
   paginatePrinters,
   type FiscalBookSearchType,
 } from '@/lib/fiscal-book-search';
-import { isFiscalBookListedPrinter } from '@/lib/printer-status';
+import { isFiscalBookListedPrinter, filterPrintersByListingStatus } from '@/lib/printer-status';
+import type { PrinterListingFilter } from '@/lib/printer-status';
 import { toBooleanOrNull, toNumber, toStringOrNull } from '@/lib/api-contract';
 import { assignLibroNumbers } from '@/lib/fiscal-helpers';
 import { withManufacturerCompanyFallback } from '@/lib/manufacturer-company';
@@ -441,6 +442,7 @@ export const printerService = {
     page: number = 1,
     pageSize: number = 10,
     searchType: FiscalBookSearchType = 'serial',
+    listingFilter: PrinterListingFilter = 'all',
     _opts?: { distribuidoraId?: number | null },
   ): Promise<{
     data: FiscalPrinter[];
@@ -450,8 +452,17 @@ export const printerService = {
     const trimmed = query.trim();
 
     if (!trimmed) {
-      const result = await this.searchPrinters('', page, pageSize);
-      return { ...result, exactMatch: null };
+      if (listingFilter === 'all') {
+        const result = await this.searchPrinters('', page, pageSize);
+        return { ...result, exactMatch: null };
+      }
+      const all = await this.fetchAllVisiblePrinters();
+      const filtered = filterPrintersByListingStatus(all, listingFilter);
+      return {
+        data: paginatePrinters(filtered, page, pageSize),
+        count: filtered.length,
+        exactMatch: null,
+      };
     }
 
     if (isBackendExactSearch(trimmed, searchType)) {
@@ -460,16 +471,20 @@ export const printerService = {
         probe.count <= probe.data.length
           ? probe
           : await this.searchPrinters(trimmed, 1, Math.min(probe.count, 100));
+      const statusFiltered = filterPrintersByListingStatus(full.data, listingFilter);
 
       return {
-        data: paginatePrinters(full.data, page, pageSize),
-        count: full.count,
-        exactMatch: findExactSearchMatch(full.data, trimmed, searchType),
+        data: paginatePrinters(statusFiltered, page, pageSize),
+        count: statusFiltered.length,
+        exactMatch: findExactSearchMatch(statusFiltered, trimmed, searchType),
       };
     }
 
     const visible = await this.fetchAllVisiblePrinters();
-    const filtered = filterPrintersBySearch(visible, trimmed, searchType);
+    const filtered = filterPrintersByListingStatus(
+      filterPrintersBySearch(visible, trimmed, searchType),
+      listingFilter,
+    );
 
     return {
       data: paginatePrinters(filtered, page, pageSize),

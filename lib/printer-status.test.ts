@@ -3,6 +3,7 @@ import {
   isFiscalBookListedPrinter,
   printerEstatusBadgeClass,
   printerEstatusLabel,
+  filterPrintersByListingStatus,
 } from '@/lib/printer-status';
 
 describe('printer-status', () => {
@@ -30,5 +31,20 @@ describe('printer-status', () => {
     expect(isFiscalBookListedPrinter('desincorporada')).toBe(true);
     expect(isFiscalBookListedPrinter('asignada')).toBe(false);
     expect(isFiscalBookListedPrinter('laboratorio')).toBe(false);
+  });
+
+  it('filters listed printers by activa and retirada', () => {
+    const printers = [
+      { id: '1', estatus: 'enajenada' },
+      { id: '2', estatus: 'desincorporada' },
+      { id: '3', estatus: 'enajenada' },
+    ];
+
+    expect(filterPrintersByListingStatus(printers, 'all')).toHaveLength(3);
+    expect(filterPrintersByListingStatus(printers, 'activa').map((p) => p.id)).toEqual([
+      '1',
+      '3',
+    ]);
+    expect(filterPrintersByListingStatus(printers, 'retirada').map((p) => p.id)).toEqual(['2']);
   });
 });
