@@ -9,6 +9,7 @@ import {
   paginatePrinters,
   type FiscalBookSearchType,
 } from '@/lib/fiscal-book-search';
+import { isFiscalBookListedPrinter } from '@/lib/printer-status';
 import { toBooleanOrNull, toNumber, toStringOrNull } from '@/lib/api-contract';
 import { assignLibroNumbers } from '@/lib/fiscal-helpers';
 import {
@@ -384,7 +385,11 @@ export const printerService = {
 
     try {
       const detail = await fetchFiscalBookByPrinterId(printerId);
-      return mapDetailToFiscalPrinter(detail);
+      const printer = mapDetailToFiscalPrinter(detail);
+      if (!isFiscalBookListedPrinter(printer.estatus)) {
+        return undefined;
+      }
+      return printer;
     } catch (error) {
       console.error('Error loading fiscal book detail:', error);
       return undefined;
@@ -398,8 +403,11 @@ export const printerService = {
     _opts?: { distribuidoraId?: number | null },
   ): Promise<{ data: FiscalPrinter[]; count: number }> => {
     const result = await searchFiscalBooks(query, page, pageSize);
+    const data = result.items
+      .map(mapSummaryToFiscalPrinter)
+      .filter((printer) => isFiscalBookListedPrinter(printer.estatus));
     return {
-      data: result.items.map(mapSummaryToFiscalPrinter),
+      data,
       count: result.total,
     };
   },

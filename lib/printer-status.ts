@@ -15,8 +15,8 @@ const PRINTER_ESTATUS_LABELS: Record<PrinterEstatus, string> = {
   sin_asignar: 'Sin asignar',
   asignada: 'Asignada',
   en_consignacion: 'En consignación',
-  enajenada: 'Enajenada',
-  desincorporada: 'Desincorporada',
+  enajenada: 'Activo',
+  desincorporada: 'Retirado',
   laboratorio: 'Laboratorio',
 };
 
@@ -30,9 +30,9 @@ const PRINTER_ESTATUS_BADGE_CLASS: Record<PrinterEstatus, string> = {
   en_consignacion:
     'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/30',
   enajenada:
-    'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800/30',
+    'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/30',
   desincorporada:
-    'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700',
+    'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700',
   laboratorio:
     'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/30',
 };
@@ -64,4 +64,12 @@ export function printerEstatusBadgeClass(value: string | null | undefined): stri
     return PRINTER_ESTATUS_BADGE_CLASS[normalized as PrinterEstatus];
   }
   return 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+}
+
+/** Solo equipos enajenados o desincorporados aparecen en el libro fiscal. */
+export function isFiscalBookListedPrinter(
+  value: string | null | undefined,
+): boolean {
+  const normalized = normalizePrinterEstatus(value);
+  return normalized === 'enajenada' || normalized === 'desincorporada';
 }

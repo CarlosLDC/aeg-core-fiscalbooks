@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isFiscalBookListedPrinter,
   printerEstatusBadgeClass,
   printerEstatusLabel,
 } from '@/lib/printer-status';
@@ -9,8 +10,25 @@ describe('printer-status', () => {
     expect(printerEstatusLabel('en_consignacion')).toBe('En consignación');
   });
 
+  it('labels fiscal book statuses for contributors', () => {
+    expect(printerEstatusLabel('enajenada')).toBe('Activo');
+    expect(printerEstatusLabel('desincorporada')).toBe('Retirado');
+  });
+
   it('styles en consignacion distinctly from asignada', () => {
     expect(printerEstatusBadgeClass('en_consignacion')).toContain('indigo');
     expect(printerEstatusBadgeClass('asignada')).toContain('emerald');
+  });
+
+  it('styles fiscal book active and retired badges', () => {
+    expect(printerEstatusBadgeClass('enajenada')).toContain('emerald');
+    expect(printerEstatusBadgeClass('desincorporada')).toContain('slate');
+  });
+
+  it('lists only enajenada and desincorporada printers in fiscal books', () => {
+    expect(isFiscalBookListedPrinter('enajenada')).toBe(true);
+    expect(isFiscalBookListedPrinter('desincorporada')).toBe(true);
+    expect(isFiscalBookListedPrinter('asignada')).toBe(false);
+    expect(isFiscalBookListedPrinter('laboratorio')).toBe(false);
   });
 });
