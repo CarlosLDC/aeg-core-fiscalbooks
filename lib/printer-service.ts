@@ -12,6 +12,7 @@ import {
 import { isFiscalBookListedPrinter } from '@/lib/printer-status';
 import { toBooleanOrNull, toNumber, toStringOrNull } from '@/lib/api-contract';
 import { assignLibroNumbers } from '@/lib/fiscal-helpers';
+import { withManufacturerCompanyFallback } from '@/lib/manufacturer-company';
 import {
   AnnualInspection,
   FiscalPrinter,
@@ -257,6 +258,10 @@ function mapTechnicalService(
     (pick(s, 'photoUrls', 'photo_urls', 'urlFotos') as string[] | undefined) ??
     s.photoUrls ??
     [];
+  const center = withManufacturerCompanyFallback(
+    pickString(s, 'serviceCenter', 'service_center', 'centroServicio') ?? s.serviceCenter,
+    pickString(s, 'centerRif', 'center_rif') ?? s.centerRif,
+  );
   return {
     id: String(s.id),
     createdAt: createdAt ?? null,
@@ -264,10 +269,8 @@ function mapTechnicalService(
       pickString(s, 'requestDate', 'request_date', 'fechaSolicitud') ??
       s.requestDate ??
       null,
-    serviceCenter:
-      pickString(s, 'serviceCenter', 'service_center', 'centroServicio') ??
-      s.serviceCenter,
-    centerRif: pickString(s, 'centerRif', 'center_rif') ?? s.centerRif,
+    serviceCenter: center.serviceCenter,
+    centerRif: center.centerRif,
     technician: pickString(s, 'technician', 'tecnico') ?? s.technician,
     technicianId:
       pickString(s, 'technicianNationalId', 'technician_national_id', 'technicianId') ??
@@ -326,14 +329,17 @@ function mapAnnualInspection(
   const passed =
     fechaFin != null && !isNaN(fechaFin.getTime()) ? fechaFin <= new Date() : false;
 
+  const center = withManufacturerCompanyFallback(
+    pickString(i, 'serviceCenter', 'service_center', 'centroServicio') ?? i.serviceCenter,
+    pickString(i, 'centerRif', 'center_rif') ?? i.centerRif,
+  );
+
   return {
     id: String(i.id),
     createdAt: createdAt ?? null,
     date: dateStr,
-    serviceCenter:
-      pickString(i, 'serviceCenter', 'service_center', 'centroServicio') ??
-      i.serviceCenter,
-    centerRif: pickString(i, 'centerRif', 'center_rif') ?? i.centerRif,
+    serviceCenter: center.serviceCenter,
+    centerRif: center.centerRif,
     inspector: pickString(i, 'inspector', 'employee', 'inspectorName') ?? i.inspector,
     observations:
       pickString(i, 'notes', 'observations', 'observaciones') ?? i.notes ?? null,

@@ -1,4 +1,5 @@
 import { toNumber } from '@/lib/api-contract';
+import { manufacturerCompanyFields } from '@/lib/manufacturer-company';
 import { fetchServiceCenters } from '@/lib/service-centers-api';
 import type { UserProfile } from '@/lib/auth-profile';
 
@@ -52,6 +53,7 @@ export async function resolveTechnicalServiceActor(
     const serviceCenterId = await resolveServiceCenterId(profile);
     return {
       ...baseActor(profile),
+      ...manufacturerCompanyFields(),
       serviceCenterId,
       distributorId: null,
     };
@@ -119,6 +121,7 @@ export async function resolveAnnualInspectionActor(
       profile.role === 'TECHNICIAN' ? await resolveServiceCenterId(profile) : null;
     return {
       ...baseActor(profile),
+      ...(profile.role === 'ADMIN' ? manufacturerCompanyFields() : {}),
       serviceCenterId,
       distributorId: profile.distributorId,
     };

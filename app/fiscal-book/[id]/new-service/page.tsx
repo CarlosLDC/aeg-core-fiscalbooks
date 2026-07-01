@@ -9,6 +9,7 @@ import type { SealResponse } from '@/types/seal';
 import { createTechnicalService } from '@/lib/technical-services-api';
 import { fetchSeals } from '@/lib/seals-api';
 import { resolveTechnicalServiceActor } from '@/lib/field-actor-resolver';
+import { formatManufacturerCompanyDisplay } from '@/lib/manufacturer-company';
 import { messageFromUnknownError } from '@/lib/api-error-message';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -449,7 +450,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                   ? tecnicoInfo.centro_servicio_id != null
                     ? formatCentroDisplay(tecnicoInfo)
                     : authProfile?.role === 'ADMIN'
-                      ? 'Sin centro de servicio (administrador firmante)'
+                      ? formatManufacturerCompanyDisplay()
                       : '—'
                   : idCentroServicio
                     ? `Centro #${idCentroServicio}`
