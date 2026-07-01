@@ -5,7 +5,7 @@ import {
   disposeQrScanner,
   scheduleQrScannerCleanup,
   startQrScannerWithFallback,
-  toErrorMessage,
+  toCameraErrorMessage,
   waitForDomElement,
   waitForQrScannerSlot,
 } from '@/lib/qr-scanner-runtime';
@@ -65,12 +65,7 @@ export function QrCodeScanner({ onScan, onError, className }: QrCodeScannerProps
       } catch (err) {
         if (!cancelled) {
           setStarting(false);
-          onErrorRef.current?.(
-            toErrorMessage(
-              err,
-              'No se pudo acceder a la cámara. Use la entrada manual.',
-            ),
-          );
+          onErrorRef.current?.(toCameraErrorMessage(err));
         }
       }
     }

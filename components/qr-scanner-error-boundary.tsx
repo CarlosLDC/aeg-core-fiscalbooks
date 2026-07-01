@@ -1,6 +1,7 @@
 'use client';
 
 import { Component, type ReactNode } from 'react';
+import { toCameraErrorMessage } from '@/lib/qr-scanner-runtime';
 
 type QrScannerErrorBoundaryProps = {
   children: ReactNode;
@@ -22,7 +23,7 @@ export class QrScannerErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error) {
-    this.props.onError?.(error.message || 'No se pudo usar la cámara.');
+    this.props.onError?.(toCameraErrorMessage(error));
   }
 
   render() {

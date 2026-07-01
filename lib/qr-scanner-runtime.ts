@@ -1,11 +1,90 @@
 type Html5QrcodeInstance = import('html5-qrcode').Html5Qrcode;
 type CameraConfig = string | { facingMode: string };
 
+const DEFAULT_CAMERA_ERROR =
+  'No pudimos usar la cámara. Puede pegar el código manualmente.';
+
 let scannerCleanupChain: Promise<void> = Promise.resolve();
 
-function toErrorMessage(err: unknown, fallback: string): string {
-  if (err instanceof Error && err.message.trim()) return err.message;
-  if (typeof err === 'string' && err.trim()) return err;
+function extractErrorText(err: unknown): string {
+  if (err instanceof Error) {
+    return `${err.name} ${err.message}`.trim();
+  }
+  if (typeof err === 'string') return err.trim();
+  return '';
+}
+
+function isUserFriendlySpanishMessage(message: string): boolean {
+  if (!message || message.length > 220) return false;
+  return !/aborterror|notallowed|notfound|notreadable|domexception|getusermedia|constraint|videostream|html5|permission denied|requested device/i.test(
+    message,
+  );
+}
+
+export function toCameraErrorMessage(
+  err: unknown,
+  fallback = DEFAULT_CAMERA_ERROR,
+): string {
+  const raw = extractErrorText(err);
+  if (!raw) return fallback;
+
+  const normalized = raw.toLowerCase();
+
+  if (
+    normalized.includes('notallowed') ||
+    normalized.includes('permission denied') ||
+    normalized.includes('permission dismissed')
+  ) {
+    return 'Debe permitir el acceso a la cámara en su navegador para escanear el código.';
+  }
+
+  if (
+    normalized.includes('notfound') ||
+    normalized.includes('requested device not found') ||
+    normalized.includes('devicesnotfound') ||
+    normalized.includes('no camera')
+  ) {
+    return 'No encontramos una cámara en este equipo. Use la opción de pegar el código.';
+  }
+
+  if (
+    normalized.includes('notreadable') ||
+    normalized.includes('could not start video source') ||
+    normalized.includes('device in use')
+  ) {
+    return 'La cámara está siendo usada por otra aplicación. Ciérrela e intente de nuevo.';
+  }
+
+  if (
+    normalized.includes('timeout') ||
+    (normalized.includes('abort') && normalized.includes('video'))
+  ) {
+    return 'La cámara tardó en responder. Cierre otras apps que la usen e intente de nuevo.';
+  }
+
+  if (
+    normalized.includes('securityerror') ||
+    normalized.includes('secure context') ||
+    normalized.includes('only secure origins')
+  ) {
+    return 'La cámara solo funciona con conexión segura. Use la opción de pegar el código.';
+  }
+
+  if (
+    normalized.includes('notsupported') ||
+    normalized.includes('getusermedia is not implemented')
+  ) {
+    return 'Su navegador no permite usar la cámara aquí. Use la opción de pegar el código.';
+  }
+
+  if (err instanceof Error && isUserFriendlySpanishMessage(err.message)) {
+    return err.message.trim();
+  }
+
+  if (isUserFriendlySpanishMessage(raw)) {
+    return raw;
+  }
+
   return fallback;
 }
 
@@ -22,7 +101,7 @@ export function waitForDomElement(elementId: string, attempts = 12): Promise<HTM
 
       tries += 1;
       if (tries >= attempts) {
-        reject(new Error('No se pudo inicializar el visor de cámara.'));
+        reject(new Error('No pudimos preparar la cámara. Intente de nuevo o pegue el código.'));
         return;
       }
 
@@ -144,14 +223,12 @@ export async function startQrScannerWithFallback(
 
   if (isAbortTimeoutError(lastError)) {
     throw new Error(
-      'La cámara tardó demasiado en iniciar (Timeout). Cierre otras apps que usen la cámara y reintente.',
+      'La cámara tardó en responder. Cierre otras apps que la usen e intente de nuevo.',
     );
   }
 
-  throw lastError ?? new Error('No se pudo acceder a la cámara. Use la entrada manual.');
+  throw new Error(toCameraErrorMessage(lastError));
 }
-
-export { toErrorMessage };
 
 function isAbortTimeoutError(err: unknown): boolean {
   if (err instanceof Error) {
