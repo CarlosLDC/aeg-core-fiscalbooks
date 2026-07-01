@@ -81,12 +81,12 @@ export default function SearchPage() {
     }
   }, []);
 
-  /** Tras terminar una carga (p. ej. cambio de página), el DOM ya refleja los resultados: entonces hacemos scroll. */
+  /** Tras terminar una carga, el DOM ya refleja los resultados: entonces hacemos scroll. */
   useEffect(() => {
     if (loading || !pendingScrollToResults.current) return;
     pendingScrollToResults.current = false;
     scrollResultsSectionIntoView(resultsRef.current);
-  }, [loading]);
+  }, [loading, hasSearched, results.length]);
 
   // Search Normalization
   const handleSearchTermChange = (value: string) => {
@@ -147,8 +147,8 @@ export default function SearchPage() {
       setTotalCount(count ?? 0);
       setCurrentPage(page);
 
-      // Scroll tras pintar (useEffect cuando loading pasa a false); no aquí — React aún no ha actualizado el DOM
-      if (!isNewSearch) {
+      const resultCount = count ?? 0;
+      if ((isNewSearch && resultCount > 1) || !isNewSearch) {
         pendingScrollToResults.current = true;
       }
     } catch (error) {
