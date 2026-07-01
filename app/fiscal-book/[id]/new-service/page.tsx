@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use, useEffect } from 'react';
+import { useState, use, useEffect, type ReactNode } from 'react';
 import { useUserProfile } from '@/app/layout';
 import { canCreateTechnicalService } from '@/lib/fiscal-permissions';
 import { printerService } from '@/lib/printer-service';
@@ -51,6 +51,25 @@ function formatCentroDisplay(r: {
     .filter((x) => x != null && String(x).trim() !== '')
     .join(', ');
   return lugar ? `${org} — ${lugar}` : org;
+}
+
+const dateInputClass =
+  'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100';
+
+const readOnlyFieldClass =
+  'w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500';
+
+function ServiceFormSeparator() {
+  return (
+    <div
+      className="border-t border-slate-100 dark:border-slate-800"
+      role="presentation"
+    />
+  );
+}
+
+function ServiceFormSection({ children }: { children: ReactNode }) {
+  return <section className="space-y-6 py-6 first:pt-0 last:pb-0">{children}</section>;
 }
 
 export default function NewTechnicalService({ params }: { params: Promise<{ id: string }> }) {
@@ -422,172 +441,192 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <form
           onSubmit={handleSubmit}
-          className="space-y-6 uppercase-none"
+          className="uppercase-none"
           aria-disabled={!tecnicoInfo}
         >
-          
-          {/* Metadatos */}
-          <div className="grid grid-cols-1 gap-6">
-            <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Técnico Responsable</label>
-              {tecnicoInfo ? (
-                <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500">
-                  {tecnicoInfo.usuario_nombre} (V{tecnicoInfo.usuario_cedula?.replace(/-/g, '')})
-                </div>
-              ) : (
-                <div className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-slate-400">
-                  Sin datos de técnico
-                </div>
-              )}
-            </div>
+          <ServiceFormSection>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Técnico Responsable
+                </label>
+                {tecnicoInfo ? (
+                  <div className={readOnlyFieldClass}>
+                    {tecnicoInfo.usuario_nombre} (V{tecnicoInfo.usuario_cedula?.replace(/-/g, '')})
+                  </div>
+                ) : (
+                  <div className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-slate-400">
+                    Sin datos de técnico
+                  </div>
+                )}
+              </div>
 
-            <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                Centro de servicio
-              </label>
-              <div className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500">
-                {tecnicoInfo
-                  ? tecnicoInfo.centro_servicio_id != null
-                    ? formatCentroDisplay(tecnicoInfo)
-                    : authProfile?.role === 'ADMIN'
-                      ? formatManufacturerCompanyDisplay()
-                      : '—'
-                  : idCentroServicio
-                    ? `Centro #${idCentroServicio}`
-                    : '—'}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Centro de servicio
+                </label>
+                <div className={readOnlyFieldClass}>
+                  {tecnicoInfo
+                    ? tecnicoInfo.centro_servicio_id != null
+                      ? formatCentroDisplay(tecnicoInfo)
+                      : authProfile?.role === 'ADMIN'
+                        ? formatManufacturerCompanyDisplay()
+                        : '—'
+                    : idCentroServicio
+                      ? `Centro #${idCentroServicio}`
+                      : '—'}
+                </div>
               </div>
             </div>
-          </div>
+          </ServiceFormSection>
 
-          <div className="border-b border-slate-100 dark:border-slate-800" />
+          <ServiceFormSeparator />
 
-          {/* Fechas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Fecha de Solicitud</label>
-              <input
-                type="date"
-                required
-                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
-                value={fechaSolicitud}
-                onChange={(e) => setFechaSolicitud(e.target.value)}
-              />
-            </div>
-            <div />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4 lg:col-span-1">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Inicio de Servicio</label>
-              <div className="flex gap-2">
+          <ServiceFormSection>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Fecha de Solicitud
+                </label>
                 <input
                   type="date"
                   required
-                  className="w-2/3 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+                  className={dateInputClass}
+                  value={fechaSolicitud}
+                  onChange={(e) => setFechaSolicitud(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Fecha de Inicio
+                </label>
+                <input
+                  type="date"
+                  required
+                  className={dateInputClass}
                   value={fechaInicioDate}
                   onChange={(e) => setFechaInicioDate(e.target.value)}
                 />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Hora de Inicio
+                </label>
                 <TimeInput
                   required
+                  className="w-full"
                   value={fechaInicioTime}
                   onChange={(e) => setFechaInicioTime(e.target.value)}
                 />
               </div>
-            </div>
-            <div className="space-y-4 lg:col-span-1">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Fin de Servicio</label>
-              <div className="flex gap-2">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Fecha de Fin
+                </label>
                 <input
                   type="date"
                   required
-                  className="w-2/3 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+                  className={dateInputClass}
                   value={fechaFinDate}
                   onChange={(e) => setFechaFinDate(e.target.value)}
                 />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Hora de Fin
+                </label>
                 <TimeInput
                   required
+                  className="w-full"
                   value={fechaFinTime}
                   onChange={(e) => setFechaFinTime(e.target.value)}
                 />
               </div>
             </div>
-          </div>
+          </ServiceFormSection>
 
-          {/* Reporte Z y Fechas Z */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                Reporte Z Inicial
-              </label>
-              <div className="relative w-full">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <span className="text-slate-400 dark:text-slate-500 font-bold">#</span>
+          <ServiceFormSeparator />
+
+          <ServiceFormSection>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Reporte Z Inicial
+                </label>
+                <div className="relative w-full">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <span className="text-slate-400 dark:text-slate-500 font-bold">#</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium font-mono text-slate-900 dark:text-white placeholder:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder="000123"
+                    value={reporteZInicial}
+                    onChange={(e) => setReporteZInicial(e.target.value)}
+                  />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Fecha Reporte Z Inicial
+                </label>
                 <input
-                  type="number"
-                  min="0"
+                  type="date"
                   required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium font-mono text-slate-900 dark:text-white placeholder:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  placeholder="000123"
-                  value={reporteZInicial}
-                  onChange={(e) => setReporteZInicial(e.target.value)}
+                  className={dateInputClass}
+                  value={fechaZInicialDate}
+                  onChange={(e) => setFechaZInicialDate(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Reporte Z Final
+                </label>
+                <div className="relative w-full">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <span className="text-slate-400 dark:text-slate-500 font-bold">#</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium font-mono text-slate-900 dark:text-white placeholder:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder="000124"
+                    value={reporteZFinal}
+                    onChange={(e) => setReporteZFinal(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Fecha Reporte Z Final
+                </label>
+                <input
+                  type="date"
+                  required
+                  className={dateInputClass}
+                  value={fechaZFinalDate}
+                  onChange={(e) => setFechaZFinalDate(e.target.value)}
                 />
               </div>
             </div>
+          </ServiceFormSection>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                Fecha Reporte Z Inicial
-              </label>
-              <input
-                type="date"
-                required
-                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
-                value={fechaZInicialDate}
-                onChange={(e) => setFechaZInicialDate(e.target.value)}
-              />
-            </div>
+          <ServiceFormSeparator />
 
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                Reporte Z Final
-              </label>
-              <div className="relative w-full">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <span className="text-slate-400 dark:text-slate-500 font-bold">#</span>
-                </div>
-                <input
-                  type="number"
-                  min="0"
-                  required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium font-mono text-slate-900 dark:text-white placeholder:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  placeholder="000124"
-                  value={reporteZFinal}
-                  onChange={(e) => setReporteZFinal(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                Fecha Reporte Z Final
-              </label>
-              <input
-                type="date"
-                required
-                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
-                value={fechaZFinalDate}
-                onChange={(e) => setFechaZFinalDate(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="border-b border-slate-100 dark:border-slate-800" />
-
-          {/* Detalles del Servicio */}
-          <div className="space-y-6">
+          <ServiceFormSection>
             <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Costo Total</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                Costo Total
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <span className="text-slate-400 dark:text-slate-500 font-bold">$</span>
@@ -606,7 +645,9 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
             </div>
 
             <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Falla Reportada</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                Falla Reportada
+              </label>
               <textarea
                 required
                 rows={3}
@@ -618,7 +659,9 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
             </div>
 
             <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Observaciones (Opcional)</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                Observaciones (Opcional)
+              </label>
               <textarea
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white placeholder:text-slate-400"
@@ -627,67 +670,81 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                 onChange={(e) => setObservaciones(e.target.value)}
               />
             </div>
-          </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="precinto_violentado"
-                className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer"
-                checked={precintoViolentado}
-                onChange={(e) => setPrecintoViolentado(e.target.checked)}
-              />
-              <label htmlFor="precinto_violentado" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-                ¿Se encontró el precinto violentado?
-              </label>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="seal_replaced"
-                className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer"
-                checked={sealReplaced}
-                onChange={(e) => setSealReplaced(e.target.checked)}
-              />
-              <label htmlFor="seal_replaced" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-                ¿Se reemplazó el precinto?
-              </label>
-            </div>
-
-            {sealReplaced && (
-              <div className="pl-8 pt-2 animate-in slide-in-from-left-2 duration-200 space-y-4">
-                {serialPrecintoActual && (
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm">
-                    <span className="text-amber-700 dark:text-amber-400 font-medium">
-                      Precinto actual a retirar:
-                    </span>
-                    <span className="font-mono font-bold text-amber-900 dark:text-amber-200">{serialPrecintoActual}</span>
-                    <span className="text-amber-500 dark:text-amber-500 text-xs">(pasará a sustituido)</span>
-                  </div>
-                )}
-                {!serialPrecintoActual && !idPrecintoActual && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-                    Este equipo no tiene precinto activo registrado. Solo se instalará el nuevo.
-                  </p>
-                )}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1 block">Nuevo Precinto a Instalar (*)</label>
-                  <FiscalSealSelect
-                    seals={precintosDisponibles}
-                    value={idPrecintoInstalado}
-                    onChange={setIdPrecintoInstalado}
-                    loading={loadingPrecintos}
-                    disabled={loadingPrecintos}
-                  />
-                  {precintosDisponibles.length === 0 && !loadingPrecintos && (
-                    <p className="text-xs text-amber-600 font-medium">No hay precintos con estatus «disponible». Registre uno primero.</p>
-                  )}
-                </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="precinto_violentado"
+                  className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer"
+                  checked={precintoViolentado}
+                  onChange={(e) => setPrecintoViolentado(e.target.checked)}
+                />
+                <label
+                  htmlFor="precinto_violentado"
+                  className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none"
+                >
+                  ¿Se encontró el precinto violentado?
+                </label>
               </div>
-            )}
-          </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="seal_replaced"
+                  className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer"
+                  checked={sealReplaced}
+                  onChange={(e) => setSealReplaced(e.target.checked)}
+                />
+                <label
+                  htmlFor="seal_replaced"
+                  className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none"
+                >
+                  ¿Se reemplazó el precinto?
+                </label>
+              </div>
+
+              {sealReplaced && (
+                <div className="pl-8 pt-2 animate-in slide-in-from-left-2 duration-200 space-y-4">
+                  {serialPrecintoActual && (
+                    <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm">
+                      <span className="text-amber-700 dark:text-amber-400 font-medium">
+                        Precinto actual a retirar:
+                      </span>
+                      <span className="font-mono font-bold text-amber-900 dark:text-amber-200">
+                        {serialPrecintoActual}
+                      </span>
+                      <span className="text-amber-500 dark:text-amber-500 text-xs">
+                        (pasará a sustituido)
+                      </span>
+                    </div>
+                  )}
+                  {!serialPrecintoActual && !idPrecintoActual && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                      Este equipo no tiene precinto activo registrado. Solo se instalará el nuevo.
+                    </p>
+                  )}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1 block">
+                      Nuevo Precinto a Instalar (*)
+                    </label>
+                    <FiscalSealSelect
+                      seals={precintosDisponibles}
+                      value={idPrecintoInstalado}
+                      onChange={setIdPrecintoInstalado}
+                      loading={loadingPrecintos}
+                      disabled={loadingPrecintos}
+                    />
+                    {precintosDisponibles.length === 0 && !loadingPrecintos && (
+                      <p className="text-xs text-amber-600 font-medium">
+                        No hay precintos con estatus «disponible». Registre uno primero.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </ServiceFormSection>
 
           {error && (
             <div className="bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 text-sm px-4 py-3 rounded-xl border border-red-100 dark:border-red-900/30">
