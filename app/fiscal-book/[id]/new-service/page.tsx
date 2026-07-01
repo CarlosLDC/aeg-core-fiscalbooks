@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { TimeInput } from '@/components/time-input';
 import { ArrowLeft } from '@/components/icons';
 import { SuccessModal } from '@/components/success-modal';
+import { FiscalSealSelect } from '@/components/fiscal-seal-select';
 import {
   parseLocalDateOnly,
   parseLocalDateTime,
@@ -678,22 +679,13 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                 )}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1 block">Nuevo Precinto a Instalar (*)</label>
-                  <select
-                    required={sealReplaced}
-                    className="w-full max-w-md px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white appearance-none"
+                  <FiscalSealSelect
+                    seals={precintosDisponibles}
                     value={idPrecintoInstalado}
-                    onChange={(e) => setIdPrecintoInstalado(e.target.value)}
+                    onChange={setIdPrecintoInstalado}
+                    loading={loadingPrecintos}
                     disabled={loadingPrecintos}
-                  >
-                    <option value="" disabled>
-                      {loadingPrecintos ? 'Cargando precintos disponibles...' : 'Seleccione un precinto disponible...'}
-                    </option>
-                    {precintosDisponibles.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.serial} ({p.color})
-                      </option>
-                    ))}
-                  </select>
+                  />
                   {precintosDisponibles.length === 0 && !loadingPrecintos && (
                     <p className="text-xs text-amber-600 font-medium">No hay precintos con estatus «disponible». Registre uno primero.</p>
                   )}
