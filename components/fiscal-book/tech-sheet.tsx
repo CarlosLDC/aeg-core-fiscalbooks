@@ -29,21 +29,27 @@ export function SingleTechSheet({ review, printer }: { review: TechnicalReview; 
               <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Fecha de Fin</label>
               <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{review.endDate || <NoData />}</p>
             </div>
-            <div>
-              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Primera Reporte Z</label>
-              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{review.zReportStart || <NoData />}</p>
+            <div className="md:col-span-2">
+              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Primer Reporte Z</label>
+              <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
+                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight shrink-0">
+                  {review.zReportStart || <NoData />}
+                </p>
+                <p className="font-mono text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-tight">
+                  {formatZReportTimestamp(review.zReportTimestampStart) || <NoData />}
+                </p>
+              </div>
             </div>
-            <div>
-              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Fecha de Primer Reporte Z</label>
-              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{formatZReportTimestamp(review.zReportTimestampStart) || <NoData />}</p>
-            </div>
-            <div>
+            <div className="md:col-span-2">
               <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Último Reporte Z</label>
-              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{review.zReportEnd || <NoData />}</p>
-            </div>
-            <div>
-              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Fecha de Último Reporte Z</label>
-              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{formatZReportTimestamp(review.zReportTimestampEnd) || <NoData />}</p>
+              <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
+                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight shrink-0">
+                  {review.zReportEnd || <NoData />}
+                </p>
+                <p className="font-mono text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-tight">
+                  {formatZReportTimestamp(review.zReportTimestampEnd) || <NoData />}
+                </p>
+              </div>
             </div>
           </div>
         </div>

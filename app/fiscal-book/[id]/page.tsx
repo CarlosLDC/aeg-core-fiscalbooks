@@ -455,10 +455,26 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                     drawField('Fecha de Solicitud', tr.fechaSolicitud, margin, y); y += 6;
                     drawField('Fecha de Inicio', tr.startDate ?? tr.date, margin, y); y += 6;
                     drawField('Fecha de Fin', tr.endDate, margin, y); y += 6;
-                    drawField('Primera Reporte Z', tr.zReportStart, margin, y); y += 6;
-                    drawField('Fecha de Primer Reporte Z', formatZReportTimestamp(tr.zReportTimestampStart) ?? '', margin, y); y += 6;
-                    drawField('Último Reporte Z', tr.zReportEnd, margin, y); y += 6;
-                    drawField('Fecha de Último Reporte Z', formatZReportTimestamp(tr.zReportTimestampEnd) ?? '', margin, y); y += 10;
+                    {
+                      const zStartWidth = drawField('Primera Reporte Z', tr.zReportStart, margin, y);
+                      drawField(
+                        'Fecha',
+                        formatZReportTimestamp(tr.zReportTimestampStart) ?? '',
+                        margin + zStartWidth + 8,
+                        y,
+                      );
+                    }
+                    y += 6;
+                    {
+                      const zEndWidth = drawField('Último Reporte Z', tr.zReportEnd, margin, y);
+                      drawField(
+                        'Fecha',
+                        formatZReportTimestamp(tr.zReportTimestampEnd) ?? '',
+                        margin + zEndWidth + 8,
+                        y,
+                      );
+                    }
+                    y += 10;
 
                     checkPageBreak();
 

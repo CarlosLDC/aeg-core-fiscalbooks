@@ -514,11 +514,12 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
 
           {/* Reporte Z y Fechas Z */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Reporte Z Inicial Column */}
-            <div className="flex flex-col gap-2">
-              <div className="space-y-4">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Reporte Z Inicial</label>
-                <div className="relative">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                Reporte Z Inicial
+              </label>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="relative w-full shrink-0 sm:w-36">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <span className="text-slate-400 dark:text-slate-500 font-bold">#</span>
                   </div>
@@ -532,27 +533,22 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                     onChange={(e) => setReporteZInicial(e.target.value)}
                   />
                 </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1 mb-2">
-                  Fecha del Reporte Z Inicial
-                </label>
                 <input
                   type="date"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+                  className="min-w-0 flex-1 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
                   value={fechaZInicialDate}
                   onChange={(e) => setFechaZInicialDate(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* Reporte Z Final Column */}
-            <div className="flex flex-col gap-2">
-              <div className="space-y-4">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Reporte Z Final</label>
-                <div className="relative">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                Reporte Z Final
+              </label>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="relative w-full shrink-0 sm:w-36">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <span className="text-slate-400 dark:text-slate-500 font-bold">#</span>
                   </div>
@@ -566,16 +562,10 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                     onChange={(e) => setReporteZFinal(e.target.value)}
                   />
                 </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1 mb-2">
-                  Fecha del Reporte Z Final
-                </label>
                 <input
                   type="date"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+                  className="min-w-0 flex-1 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
                   value={fechaZFinalDate}
                   onChange={(e) => setFechaZFinalDate(e.target.value)}
                 />
