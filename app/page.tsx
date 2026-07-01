@@ -310,7 +310,7 @@ export default function SearchPage() {
         >
           <div className="mb-6 px-2 space-y-4">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-              Resultados Centrales
+              Resultado de la Búsqueda
             </h2>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
