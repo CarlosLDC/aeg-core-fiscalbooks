@@ -12,8 +12,8 @@ describe('printer-status', () => {
   });
 
   it('labels fiscal book statuses for contributors', () => {
-    expect(printerEstatusLabel('enajenada')).toBe('Activo');
-    expect(printerEstatusLabel('desincorporada')).toBe('Retirado');
+    expect(printerEstatusLabel('enajenada')).toBe('Activa');
+    expect(printerEstatusLabel('desincorporada')).toBe('Retirada');
   });
 
   it('styles en consignacion distinctly from asignada', () => {

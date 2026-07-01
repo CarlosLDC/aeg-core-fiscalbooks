@@ -15,8 +15,8 @@ const PRINTER_ESTATUS_LABELS: Record<PrinterEstatus, string> = {
   sin_asignar: 'Sin asignar',
   asignada: 'Asignada',
   en_consignacion: 'En consignación',
-  enajenada: 'Activo',
-  desincorporada: 'Retirado',
+  enajenada: 'Activa',
+  desincorporada: 'Retirada',
   laboratorio: 'Laboratorio',
 };
 
