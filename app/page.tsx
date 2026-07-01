@@ -308,17 +308,20 @@ export default function SearchPage() {
           ref={resultsRef}
           className="animate-in fade-in slide-in-from-bottom-4 duration-500 scroll-mt-[5.5rem]"
         >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 px-2">
-            <div className="flex flex-col gap-3">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Resultados Centrales</h2>
-              <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl w-full sm:w-auto border border-slate-200 dark:border-slate-800">
+          <div className="mb-6 px-2 space-y-4">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+              Resultados Centrales
+            </h2>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex h-10 w-full sm:w-auto bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
                 {LISTING_FILTER_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     disabled={loading}
                     onClick={() => handleListingFilterChange(option.value)}
-                    className={`flex-1 sm:flex-none sm:min-w-[5.5rem] px-3 py-2 rounded-lg font-medium text-xs uppercase tracking-wide transition-all duration-200 disabled:opacity-50 ${
+                    className={`flex-1 sm:flex-none sm:min-w-[5.5rem] h-full px-3 rounded-lg font-medium text-xs uppercase tracking-wide transition-all duration-200 disabled:opacity-50 ${
                       listingFilter === option.value
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
                         : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
@@ -328,32 +331,32 @@ export default function SearchPage() {
                   </button>
                 ))}
               </div>
-            </div>
-            {/* En móvil (flex-col) el default de flex items es stretch; evitamos que las pills se estiren a 100% ancho */}
-            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center items-start gap-3 sm:gap-2">
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                <span className="whitespace-nowrap">Por página</span>
-                <select
-                  value={pageSize}
-                  disabled={loading}
-                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                  className="h-9 min-w-[4.5rem] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-1 text-sm font-semibold normal-case tracking-normal cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                >
-                  {PAGE_SIZE_OPTIONS.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                {totalCount} Total
-              </span>
-              {totalPages > 1 && (
-                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800/30 whitespace-nowrap">
-                  Página {currentPage} de {totalPages}
+
+              <div className="flex flex-wrap items-center gap-2 h-10">
+                <label className="inline-flex items-center gap-2 h-full text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <span className="whitespace-nowrap">Por página</span>
+                  <select
+                    value={pageSize}
+                    disabled={loading}
+                    onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                    className="h-full min-w-[4.5rem] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 text-sm font-semibold normal-case tracking-normal cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  >
+                    {PAGE_SIZE_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <span className="inline-flex items-center h-full text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-3 rounded-full border border-slate-200 dark:border-slate-700">
+                  {totalCount} Total
                 </span>
-              )}
+                {totalPages > 1 ? (
+                  <span className="inline-flex items-center h-full text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 px-3 rounded-full border border-blue-100 dark:border-blue-800/30 whitespace-nowrap">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                ) : null}
+              </div>
             </div>
           </div>
 
