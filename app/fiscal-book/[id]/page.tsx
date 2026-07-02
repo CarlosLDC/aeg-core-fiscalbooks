@@ -676,7 +676,11 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                         <button
                             type="button"
                             onClick={() => setIsFiltersOpen((prev) => !prev)}
-                            className="inline-flex items-center justify-center h-7 w-7 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                            className={`inline-flex items-center justify-center h-7 w-7 rounded-lg transition-colors ${
+                                isFiltersOpen
+                                    ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700'
+                            }`}
                             title={isFiltersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
                             aria-expanded={isFiltersOpen}
                             aria-label={isFiltersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
