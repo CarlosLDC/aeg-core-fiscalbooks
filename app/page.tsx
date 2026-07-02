@@ -287,6 +287,7 @@ export default function SearchPage() {
   };
 
   const handlePageChange = (newPage: number) => {
+    pendingScrollToResults.current = true;
     void performSearch(newPage, false);
   };
 
