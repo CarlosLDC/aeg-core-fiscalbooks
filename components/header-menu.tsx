@@ -10,6 +10,7 @@ import {
   SunIcon,
 } from '@/components/icons';
 import { ADMIN_APP_URL } from '@/components/admin-app-link';
+import { userDisplayInitials, userDisplayName } from '@/lib/user-display';
 
 type HeaderMenuProps = {
   theme: 'light' | 'dark';
@@ -32,11 +33,47 @@ function SessionUserInfo({
   roleLabel: string | null;
   variant: 'bar' | 'menu';
 }) {
-  if (variant === 'menu') {
+  const displayName = userDisplayName(sessionUser.name, sessionUser.email);
+  const initials = userDisplayInitials(sessionUser.name, sessionUser.email);
+
+  if (variant === 'bar') {
     return (
-      <div>
+      <div className="flex min-w-0 items-center gap-2.5">
+        <div
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-xs font-semibold text-white shadow-sm"
+          aria-hidden
+        >
+          {initials}
+        </div>
+        <div className="min-w-0 leading-tight">
+          <p className="max-w-[7.5rem] truncate text-sm font-medium text-slate-900 dark:text-white md:max-w-[9.5rem]">
+            {displayName}
+          </p>
+          {roleLabel ? (
+            <p className="max-w-[7.5rem] truncate text-xs text-slate-500 dark:text-slate-400 md:max-w-[9.5rem]">
+              {roleLabel}
+            </p>
+          ) : sessionUser.name ? (
+            <p className="max-w-[7.5rem] truncate text-xs text-slate-500 dark:text-slate-400 md:max-w-[9.5rem]">
+              {sessionUser.email}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-xs font-semibold text-white shadow-sm"
+        aria-hidden
+      >
+        {initials}
+      </div>
+      <div className="min-w-0">
         <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
-          {sessionUser.name || sessionUser.email}
+          {displayName}
         </p>
         {sessionUser.name ? (
           <p className="truncate text-xs text-slate-500 dark:text-slate-400">
@@ -44,31 +81,9 @@ function SessionUserInfo({
           </p>
         ) : null}
         {roleLabel ? (
-          <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-            {roleLabel}
-          </p>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{roleLabel}</p>
         ) : null}
       </div>
-    );
-  }
-
-  return (
-    <div className="min-w-0 leading-tight">
-      <div className="flex min-w-0 items-center gap-2">
-        <p className="min-w-0 truncate text-sm font-semibold text-slate-900 dark:text-white">
-          {sessionUser.name || sessionUser.email}
-        </p>
-        {roleLabel ? (
-          <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-            {roleLabel}
-          </span>
-        ) : null}
-      </div>
-      {sessionUser.name ? (
-        <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
-          {sessionUser.email}
-        </p>
-      ) : null}
     </div>
   );
 }
@@ -122,45 +137,44 @@ export function HeaderMenu({
     : 'pointer-events-none invisible opacity-0';
 
   return (
-    <div className="flex items-stretch overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/60 dark:border-slate-800 dark:bg-slate-900/50">
-      {sessionUser ? (
-        <div className="hidden min-w-0 max-w-[11rem] items-center px-3 py-2 sm:flex md:max-w-[15rem]">
-          <SessionUserInfo
-            sessionUser={sessionUser}
-            roleLabel={roleLabel}
-            variant="bar"
-          />
-        </div>
-      ) : null}
+    <div
+      ref={rootRef}
+      className="relative"
+      onMouseEnter={() => {
+        if (hoverCapable) setOpen(true);
+      }}
+      onMouseLeave={() => {
+        if (hoverCapable) setOpen(false);
+      }}
+    >
+      <div className="flex items-center rounded-xl border border-slate-200/80 bg-white py-1 pl-1 pr-1 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:gap-1 sm:py-1 sm:pl-1.5 sm:pr-1.5">
+        {sessionUser ? (
+          <div className="hidden sm:block">
+            <SessionUserInfo
+              sessionUser={sessionUser}
+              roleLabel={roleLabel}
+              variant="bar"
+            />
+          </div>
+        ) : null}
 
-      <div
-        ref={rootRef}
-        className="relative flex items-center"
-        onMouseEnter={() => {
-          if (hoverCapable) setOpen(true);
-        }}
-        onMouseLeave={() => {
-          if (hoverCapable) setOpen(false);
-        }}
-      >
         <button
           type="button"
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label="Menú"
-          onClick={() => {
-            if (!hoverCapable) setOpen((value) => !value);
-          }}
-          className={`inline-flex min-h-11 min-w-11 items-center justify-center p-2.5 text-slate-500 transition-colors hover:bg-white hover:text-slate-700 active:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:active:bg-slate-800 sm:min-h-0 sm:min-w-0 sm:px-3 sm:py-2 ${
-            sessionUser ? 'sm:border-l sm:border-slate-200/80 dark:sm:border-slate-800' : ''
+          onClick={() => setOpen((value) => !value)}
+          className={`inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 active:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:active:bg-slate-800 sm:min-h-0 sm:min-w-0 ${
+            sessionUser ? 'sm:ml-0.5 sm:border-l sm:border-slate-200/80 sm:pl-2 dark:sm:border-slate-800' : ''
           }`}
         >
-          <MenuIcon size={20} />
+          <MenuIcon size={18} />
         </button>
+      </div>
 
-        <div
-          className={`absolute right-0 top-full z-50 w-[min(calc(100vw-3rem),16rem)] pt-2 transition-opacity duration-150 sm:w-64 ${panelClass}`}
-        >
+      <div
+        className={`absolute right-0 top-full z-50 w-[min(calc(100vw-3rem),16rem)] pt-2 transition-opacity duration-150 sm:w-64 ${panelClass}`}
+      >
         <div
           role="menu"
           className="overflow-hidden rounded-xl border border-slate-200/80 bg-white py-1.5 shadow-lg shadow-slate-900/10 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/30"
@@ -251,7 +265,6 @@ export function HeaderMenu({
               </button>
             </>
           ) : null}
-        </div>
         </div>
       </div>
     </div>
