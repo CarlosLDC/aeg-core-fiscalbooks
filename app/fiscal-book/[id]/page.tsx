@@ -13,6 +13,7 @@ import { InfoPage } from '@/components/fiscal-book/info-page';
 import { SingleTechSheet } from '@/components/fiscal-book/tech-sheet';
 import { SingleInspectionSheet } from '@/components/fiscal-book/inspection-sheet';
 import { EmptyState } from '@/components/fiscal-book/empty-state';
+import { buildSearchRestoreHref } from '@/lib/search-return-state';
 import Link from 'next/link';
 import jsPDF from 'jspdf';
 
@@ -22,6 +23,11 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const { profile, authProfile, loading: authLoading } = useUserProfile();
     const [printer, setPrinter] = useState<FiscalPrinter | undefined>(undefined);
+    const [homeHref, setHomeHref] = useState('/');
+
+    useEffect(() => {
+        setHomeHref(buildSearchRestoreHref());
+    }, []);
     const [loading, setLoading] = useState(true);
 
     // Core States
@@ -163,7 +169,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
         return (
             <main className="container mx-auto px-4 py-32 max-w-4xl text-center flex-1 flex flex-col justify-center">
                 <h1 className="text-3xl font-bold text-foreground mb-4">Equipo no encontrado</h1>
-                <Link href="/" className="text-accent hover:underline">← Volver al inicio</Link>
+                <Link href={homeHref} className="text-accent hover:underline">← Volver al inicio</Link>
             </main>
         );
     }
@@ -872,7 +878,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                 {/* Top Row: Always visible */}
                 <div className="flex justify-between items-center w-full">
                     <div className="flex-1 flex justify-start md:w-auto">
-                        <Link href="/" className="inline-flex items-center gap-2 text-muted hover:text-foreground transition-colors pl-2">
+                        <Link href={homeHref} className="inline-flex items-center gap-2 text-muted hover:text-foreground transition-colors pl-2">
                             <ArrowLeft size={18} />
                             <span className="text-sm font-medium">Volver</span>
                         </Link>

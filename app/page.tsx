@@ -10,6 +10,11 @@ import { NoData } from '@/components/no-data';
 import { SearchIcon, ArrowRight } from '@/components/icons';
 import { printerEstatusBadgeClass, printerEstatusLabel, type PrinterListingFilter } from '@/lib/printer-status';
 import { MIN_PARTIAL_SEARCH_LENGTH } from '@/lib/fiscal-book-search';
+import {
+  saveSearchReturnState,
+  shouldRestoreSearchFromUrl,
+  loadSearchReturnState,
+} from '@/lib/search-return-state';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50] as const;
 const PAGE_SIZE_STORAGE_KEY = 'aeg-search-page-size';
@@ -63,6 +68,8 @@ export default function SearchPage() {
   // Pagination & Scrolling
   const resultsRef = useRef<HTMLDivElement>(null);
   const pendingScrollToResults = useRef(false);
+  const pendingScrollY = useRef<number | null>(null);
+  const restoreStartedRef = useRef(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [pageSize, setPageSize] = useState(5);
@@ -95,15 +102,61 @@ export default function SearchPage() {
     setSearchTerm(normalized);
   };
 
+  useEffect(() => {
+    if (loading || pendingScrollToResults.current) return;
+    if (pendingScrollY.current == null) return;
+    const y = pendingScrollY.current;
+    pendingScrollY.current = null;
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    });
+  }, [loading, hasSearched, results.length]);
+
+  const persistSearchReturn = useCallback(
+    (input: {
+      term: string;
+      searched: 'serial' | 'rif';
+      selector: 'serial' | 'rif';
+      page: number;
+      size: number;
+      filter: PrinterListingFilter;
+      scrollY?: number;
+    }) => {
+      saveSearchReturnState({
+        active: true,
+        searchTerm: input.term,
+        searchType: input.selector,
+        searchedType: input.searched,
+        currentPage: input.page,
+        pageSize: input.size,
+        listingFilter: input.filter,
+        scrollY:
+          input.scrollY ??
+          (typeof window !== 'undefined' ? window.scrollY : 0),
+      });
+    },
+    [],
+  );
+
+  type SearchRunOverrides = {
+    searchTerm?: string;
+    searchType?: 'serial' | 'rif';
+    searchedType?: 'serial' | 'rif';
+  };
+
   const performSearch = async (
     page: number,
     isNewSearch: boolean = false,
     pageSizeOverride?: number,
     listingFilterOverride?: PrinterListingFilter,
+    overrides?: SearchRunOverrides,
   ) => {
     if (authLoading) return;
 
-    const effectiveSearchType = isNewSearch ? searchType : searchedType;
+    const term = overrides?.searchTerm ?? searchTerm;
+    const selectorType = overrides?.searchType ?? searchType;
+    const effectiveSearchType =
+      overrides?.searchedType ?? (isNewSearch ? selectorType : searchedType);
     const effectiveListingFilter = listingFilterOverride ?? listingFilter;
 
     const size = pageSizeOverride ?? pageSize;
@@ -118,15 +171,23 @@ export default function SearchPage() {
 
     try {
       const { data, count, exactMatch } = await printerService.searchPrintersFlexible(
-        searchTerm,
+        term,
         page,
         size,
         effectiveSearchType,
         effectiveListingFilter,
       );
 
-      if (isNewSearch && searchTerm.trim() !== '') {
+      if (isNewSearch && term.trim() !== '') {
         if (exactMatch) {
+          persistSearchReturn({
+            term,
+            searched: effectiveSearchType,
+            selector: selectorType,
+            page: 1,
+            size,
+            filter: effectiveListingFilter,
+          });
           router.push(`/fiscal-book/${exactMatch.id}`);
           return;
         }
@@ -142,6 +203,14 @@ export default function SearchPage() {
           setTotalCount(0);
           setCurrentPage(1);
           pendingScrollToResults.current = true;
+          persistSearchReturn({
+            term,
+            searched: effectiveSearchType,
+            selector: selectorType,
+            page: 1,
+            size,
+            filter: effectiveListingFilter,
+          });
           setLoading(false);
           return;
         }
@@ -152,8 +221,19 @@ export default function SearchPage() {
       setTotalCount(count ?? 0);
       setCurrentPage(page);
 
+      persistSearchReturn({
+        term,
+        searched: effectiveSearchType,
+        selector: selectorType,
+        page,
+        size,
+        filter: effectiveListingFilter,
+      });
+
       if (isNewSearch) {
-        pendingScrollToResults.current = true;
+        if (pendingScrollY.current == null) {
+          pendingScrollToResults.current = true;
+        }
       }
     } catch (error) {
       console.error("Error searching printers:", error);
@@ -161,6 +241,30 @@ export default function SearchPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (authLoading || restoreStartedRef.current) return;
+    if (typeof window === 'undefined') return;
+    if (!shouldRestoreSearchFromUrl(window.location.search)) return;
+
+    const saved = loadSearchReturnState();
+    window.history.replaceState({}, '', '/');
+    if (!saved) return;
+
+    restoreStartedRef.current = true;
+    setSearchTerm(saved.searchTerm);
+    setSearchType(saved.searchType);
+    setSearchedType(saved.searchedType);
+    setListingFilter(saved.listingFilter);
+    persistPageSize(saved.pageSize);
+    pendingScrollY.current = saved.scrollY;
+
+    void performSearch(saved.currentPage, true, saved.pageSize, saved.listingFilter, {
+      searchTerm: saved.searchTerm,
+      searchType: saved.searchType,
+      searchedType: saved.searchedType,
+    });
+  }, [authLoading, persistPageSize]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -371,6 +475,18 @@ export default function SearchPage() {
                   <Link
                     key={printer.id}
                     href={`/fiscal-book/${printer.id}`}
+                    onClick={() => {
+                      if (!hasSearched) return;
+                      persistSearchReturn({
+                        term: searchTerm,
+                        searched: searchedType,
+                        selector: searchType,
+                        page: currentPage,
+                        size: pageSize,
+                        filter: listingFilter,
+                        scrollY: window.scrollY,
+                      });
+                    }}
                     className="block bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md dark:hover:shadow-blue-900/10 transition-all group relative overflow-hidden"
                   >
                     {/* Hover Accent Line */}
