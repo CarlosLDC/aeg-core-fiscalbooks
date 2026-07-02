@@ -36,25 +36,25 @@ function SessionUserInfo({
   const displayName = userDisplayName(sessionUser.name, sessionUser.email);
   const initials = userDisplayInitials(sessionUser.name, sessionUser.email);
 
+  const avatarClass =
+    'flex shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-[10px] font-black uppercase tracking-tight text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300';
+
   if (variant === 'bar') {
     return (
-      <div className="flex min-w-0 items-center gap-2.5">
-        <div
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-xs font-semibold text-white shadow-sm"
-          aria-hidden
-        >
+      <div className="flex min-w-0 items-center gap-2.5 px-1.5">
+        <div className={`${avatarClass} size-8`} aria-hidden>
           {initials}
         </div>
         <div className="min-w-0 leading-tight">
-          <p className="max-w-[7.5rem] truncate text-sm font-medium text-slate-900 dark:text-white md:max-w-[9.5rem]">
+          <p className="max-w-[8rem] truncate text-sm font-semibold text-foreground md:max-w-[10rem]">
             {displayName}
           </p>
           {roleLabel ? (
-            <p className="max-w-[7.5rem] truncate text-xs text-slate-500 dark:text-slate-400 md:max-w-[9.5rem]">
+            <p className="max-w-[8rem] truncate text-[10px] font-bold uppercase tracking-widest text-muted md:max-w-[10rem]">
               {roleLabel}
             </p>
           ) : sessionUser.name ? (
-            <p className="max-w-[7.5rem] truncate text-xs text-slate-500 dark:text-slate-400 md:max-w-[9.5rem]">
+            <p className="max-w-[8rem] truncate text-[10px] font-bold uppercase tracking-widest text-muted md:max-w-[10rem]">
               {sessionUser.email}
             </p>
           ) : null}
@@ -65,23 +65,19 @@ function SessionUserInfo({
 
   return (
     <div className="flex items-center gap-3">
-      <div
-        className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-xs font-semibold text-white shadow-sm"
-        aria-hidden
-      >
+      <div className={`${avatarClass} size-9`} aria-hidden>
         {initials}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
-          {displayName}
-        </p>
+        <p className="text-[9px] font-bold uppercase tracking-tighter text-muted">Usuario</p>
+        <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
         {sessionUser.name ? (
-          <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-            {sessionUser.email}
-          </p>
+          <p className="truncate text-xs text-muted">{sessionUser.email}</p>
         ) : null}
         {roleLabel ? (
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{roleLabel}</p>
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-muted">
+            {roleLabel}
+          </p>
         ) : null}
       </div>
     </div>
@@ -147,7 +143,7 @@ export function HeaderMenu({
         if (hoverCapable) setOpen(false);
       }}
     >
-      <div className="flex items-center rounded-xl border border-slate-200/80 bg-white py-1 pl-1 pr-1 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:gap-1 sm:py-1 sm:pl-1.5 sm:pr-1.5">
+      <div className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-800 dark:bg-slate-950">
         {sessionUser ? (
           <div className="hidden sm:block">
             <SessionUserInfo
@@ -164,9 +160,11 @@ export function HeaderMenu({
           aria-expanded={open}
           aria-label="Menú"
           onClick={() => setOpen((value) => !value)}
-          className={`inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 active:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:active:bg-slate-800 sm:min-h-0 sm:min-w-0 ${
-            sessionUser ? 'sm:ml-0.5 sm:border-l sm:border-slate-200/80 sm:pl-2 dark:sm:border-slate-800' : ''
-          }`}
+          className={`inline-flex h-full min-h-8 min-w-8 items-center justify-center rounded-lg px-2.5 transition-all duration-200 ${
+            open
+              ? 'bg-white text-foreground shadow-sm dark:bg-slate-700'
+              : 'text-muted hover:text-foreground'
+          } ${sessionUser ? 'sm:ml-0.5' : ''}`}
         >
           <MenuIcon size={18} />
         </button>
@@ -180,7 +178,7 @@ export function HeaderMenu({
           className="overflow-hidden rounded-xl border border-slate-200/80 bg-white py-1.5 shadow-lg shadow-slate-900/10 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/30"
         >
           {sessionUser ? (
-            <div className="border-b border-slate-100 px-4 py-3 sm:hidden dark:border-slate-800">
+            <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:hidden dark:border-slate-800 dark:bg-slate-900/40">
               <SessionUserInfo
                 sessionUser={sessionUser}
                 roleLabel={roleLabel}
