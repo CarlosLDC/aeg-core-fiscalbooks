@@ -10,7 +10,6 @@ import {
   SunIcon,
 } from '@/components/icons';
 import { ADMIN_APP_URL } from '@/components/admin-app-link';
-import { userDisplayInitials, userDisplayName } from '@/lib/user-display';
 
 type HeaderMenuProps = {
   theme: 'light' | 'dark';
@@ -23,66 +22,6 @@ type HeaderMenuProps = {
 
 const menuItemClass =
   'flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800';
-
-function SessionUserInfo({
-  sessionUser,
-  roleLabel,
-  variant,
-}: {
-  sessionUser: { email: string; name: string | null };
-  roleLabel: string | null;
-  variant: 'bar' | 'menu';
-}) {
-  const displayName = userDisplayName(sessionUser.name, sessionUser.email);
-  const initials = userDisplayInitials(sessionUser.name, sessionUser.email);
-
-  const avatarClass =
-    'flex shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-[10px] font-black uppercase tracking-tight text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300';
-
-  if (variant === 'bar') {
-    return (
-      <div className="flex min-w-0 items-center gap-2.5 px-1.5">
-        <div className={`${avatarClass} size-8`} aria-hidden>
-          {initials}
-        </div>
-        <div className="min-w-0 leading-tight">
-          <p className="max-w-[8rem] truncate text-sm font-semibold text-foreground md:max-w-[10rem]">
-            {displayName}
-          </p>
-          {roleLabel ? (
-            <p className="max-w-[8rem] truncate text-[10px] font-bold uppercase tracking-widest text-muted md:max-w-[10rem]">
-              {roleLabel}
-            </p>
-          ) : sessionUser.name ? (
-            <p className="max-w-[8rem] truncate text-[10px] font-bold uppercase tracking-widest text-muted md:max-w-[10rem]">
-              {sessionUser.email}
-            </p>
-          ) : null}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-3">
-      <div className={`${avatarClass} size-9`} aria-hidden>
-        {initials}
-      </div>
-      <div className="min-w-0">
-        <p className="text-[9px] font-bold uppercase tracking-tighter text-muted">Usuario</p>
-        <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
-        {sessionUser.name ? (
-          <p className="truncate text-xs text-muted">{sessionUser.email}</p>
-        ) : null}
-        {roleLabel ? (
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-muted">
-            {roleLabel}
-          </p>
-        ) : null}
-      </div>
-    </div>
-  );
-}
 
 function useHoverCapable(): boolean {
   const [hoverCapable, setHoverCapable] = useState(false);
@@ -143,32 +82,16 @@ export function HeaderMenu({
         if (hoverCapable) setOpen(false);
       }}
     >
-      <div className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-800 dark:bg-slate-950">
-        {sessionUser ? (
-          <div className="hidden sm:block">
-            <SessionUserInfo
-              sessionUser={sessionUser}
-              roleLabel={roleLabel}
-              variant="bar"
-            />
-          </div>
-        ) : null}
-
-        <button
-          type="button"
-          aria-haspopup="menu"
-          aria-expanded={open}
-          aria-label="Menú"
-          onClick={() => setOpen((value) => !value)}
-          className={`inline-flex h-full min-h-8 min-w-8 items-center justify-center rounded-lg px-2.5 transition-all duration-200 ${
-            open
-              ? 'bg-white text-foreground shadow-sm dark:bg-slate-700'
-              : 'text-muted hover:text-foreground'
-          } ${sessionUser ? 'sm:ml-0.5' : ''}`}
-        >
-          <MenuIcon size={18} />
-        </button>
-      </div>
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Menú"
+        onClick={() => setOpen((value) => !value)}
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 active:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-slate-200 dark:active:bg-slate-800 sm:min-h-0 sm:min-w-0 sm:p-2"
+      >
+        <MenuIcon size={20} />
+      </button>
 
       <div
         className={`absolute right-0 top-full z-50 w-[min(calc(100vw-3rem),16rem)] pt-2 transition-opacity duration-150 sm:w-64 ${panelClass}`}
@@ -178,12 +101,20 @@ export function HeaderMenu({
           className="overflow-hidden rounded-xl border border-slate-200/80 bg-white py-1.5 shadow-lg shadow-slate-900/10 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/30"
         >
           {sessionUser ? (
-            <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:hidden dark:border-slate-800 dark:bg-slate-900/40">
-              <SessionUserInfo
-                sessionUser={sessionUser}
-                roleLabel={roleLabel}
-                variant="menu"
-              />
+            <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+              <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                {sessionUser.name || sessionUser.email}
+              </p>
+              {sessionUser.name ? (
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                  {sessionUser.email}
+                </p>
+              ) : null}
+              {roleLabel ? (
+                <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  {roleLabel}
+                </p>
+              ) : null}
             </div>
           ) : null}
 
