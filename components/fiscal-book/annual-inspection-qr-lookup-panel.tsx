@@ -2,7 +2,6 @@
 
 import { useCallback, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
 import {
   getQrLookupErrorMessage,
   lookupInspectionByQr,
@@ -28,12 +27,12 @@ const QrCodeScanner = dynamic(
 type InputMode = 'manual' | 'camera';
 
 export function AnnualInspectionQrLookupPanel() {
-  const router = useRouter();
   const cameraAvailable = canUseQrCamera();
   const [inputMode, setInputMode] = useState<InputMode>('manual');
   const [qrCodigo, setQrCodigo] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [verified, setVerified] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraSession, setCameraSession] = useState(0);
   const scanHandledRef = useRef(false);
@@ -43,24 +42,24 @@ export function AnnualInspectionQrLookupPanel() {
       const trimmed = code.trim();
       if (!trimmed) {
         setError('Ingrese o escanee un código QR válido.');
+        setVerified(false);
         return;
       }
 
       setLoading(true);
       setError(null);
+      setVerified(false);
 
       try {
-        const result = await lookupInspectionByQr(trimmed);
-        router.push(
-          `/fiscal-book/${result.printerId}?tab=inspection&registro=${result.inspectionId}`,
-        );
+        await lookupInspectionByQr(trimmed);
+        setVerified(true);
       } catch (err) {
         setError(getQrLookupErrorMessage(err));
       } finally {
         setLoading(false);
       }
     },
-    [router],
+    [],
   );
 
   const handleScan = useCallback(
@@ -83,8 +82,8 @@ export function AnnualInspectionQrLookupPanel() {
         Verificar comprobante QR
       </h2>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-        Escanee o pegue el código impreso tras una inspección anual para abrir el registro
-        correspondiente en el libro fiscal.
+        Escanee o pegue el código impreso en el comprobante para comprobar que el registro
+        existe en el libro fiscal.
       </p>
 
       {cameraAvailable ? (
@@ -96,6 +95,7 @@ export function AnnualInspectionQrLookupPanel() {
               setInputMode('camera');
               setCameraError(null);
               setError(null);
+              setVerified(false);
               setCameraSession((session) => session + 1);
             }}
             className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
@@ -148,7 +148,7 @@ export function AnnualInspectionQrLookupPanel() {
             ) : null}
             {loading ? (
               <p className="mt-2 text-center text-sm font-medium text-slate-600 dark:text-slate-400">
-                Buscando registro…
+                Verificando…
               </p>
             ) : null}
           </>
@@ -160,6 +160,7 @@ export function AnnualInspectionQrLookupPanel() {
               onChange={(e) => {
                 setQrCodigo(e.target.value);
                 setError(null);
+                setVerified(false);
               }}
               placeholder="Pegue aquí el contenido del QR…"
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm text-slate-900 outline-none focus:border-blue-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
@@ -170,11 +171,17 @@ export function AnnualInspectionQrLookupPanel() {
               onClick={() => void runLookup(qrCodigo)}
               className="rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-50 dark:bg-white dark:text-slate-900"
             >
-              {loading ? 'Buscando…' : 'Verificar y abrir registro'}
+              {loading ? 'Verificando…' : 'Verificar'}
             </button>
           </div>
         )}
       </div>
+
+      {verified ? (
+        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300">
+          El registro existe.
+        </div>
+      ) : null}
 
       {error ? (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-300">
