@@ -53,21 +53,20 @@ function SessionUserInfo({
   }
 
   return (
-    <div className="min-w-0 text-right">
-      <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
-        {sessionUser.name || sessionUser.email}
-      </p>
-      {sessionUser.name || roleLabel ? (
-        <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-          {sessionUser.name ? sessionUser.email : null}
-          {sessionUser.name && roleLabel ? (
-            <span className="text-slate-300 dark:text-slate-600"> · </span>
-          ) : null}
-          {roleLabel ? (
-            <span className="font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-              {roleLabel}
-            </span>
-          ) : null}
+    <div className="min-w-0 leading-tight">
+      <div className="flex min-w-0 items-center gap-2">
+        <p className="min-w-0 truncate text-sm font-semibold text-slate-900 dark:text-white">
+          {sessionUser.name || sessionUser.email}
+        </p>
+        {roleLabel ? (
+          <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+            {roleLabel}
+          </span>
+        ) : null}
+      </div>
+      {sessionUser.name ? (
+        <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+          {sessionUser.email}
         </p>
       ) : null}
     </div>
@@ -123,9 +122,9 @@ export function HeaderMenu({
     : 'pointer-events-none invisible opacity-0';
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-stretch overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/60 dark:border-slate-800 dark:bg-slate-900/50">
       {sessionUser ? (
-        <div className="hidden min-w-0 max-w-[10rem] sm:block md:max-w-xs">
+        <div className="hidden min-w-0 max-w-[11rem] items-center px-3 py-2 sm:flex md:max-w-[15rem]">
           <SessionUserInfo
             sessionUser={sessionUser}
             roleLabel={roleLabel}
@@ -136,7 +135,7 @@ export function HeaderMenu({
 
       <div
         ref={rootRef}
-        className="relative"
+        className="relative flex items-center"
         onMouseEnter={() => {
           if (hoverCapable) setOpen(true);
         }}
@@ -144,22 +143,24 @@ export function HeaderMenu({
           if (hoverCapable) setOpen(false);
         }}
       >
-      <button
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label="Menú"
-        onClick={() => {
-          if (!hoverCapable) setOpen((value) => !value);
-        }}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 active:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-slate-200 dark:active:bg-slate-800 sm:min-h-0 sm:min-w-0 sm:p-2"
-      >
-        <MenuIcon size={20} />
-      </button>
+        <button
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label="Menú"
+          onClick={() => {
+            if (!hoverCapable) setOpen((value) => !value);
+          }}
+          className={`inline-flex min-h-11 min-w-11 items-center justify-center p-2.5 text-slate-500 transition-colors hover:bg-white hover:text-slate-700 active:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:active:bg-slate-800 sm:min-h-0 sm:min-w-0 sm:px-3 sm:py-2 ${
+            sessionUser ? 'sm:border-l sm:border-slate-200/80 dark:sm:border-slate-800' : ''
+          }`}
+        >
+          <MenuIcon size={20} />
+        </button>
 
-      <div
-        className={`absolute right-0 top-full z-50 w-[min(calc(100vw-3rem),16rem)] pt-2 transition-opacity duration-150 sm:w-64 ${panelClass}`}
-      >
+        <div
+          className={`absolute right-0 top-full z-50 w-[min(calc(100vw-3rem),16rem)] pt-2 transition-opacity duration-150 sm:w-64 ${panelClass}`}
+        >
         <div
           role="menu"
           className="overflow-hidden rounded-xl border border-slate-200/80 bg-white py-1.5 shadow-lg shadow-slate-900/10 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/30"
@@ -251,7 +252,7 @@ export function HeaderMenu({
             </>
           ) : null}
         </div>
-      </div>
+        </div>
       </div>
     </div>
   );
