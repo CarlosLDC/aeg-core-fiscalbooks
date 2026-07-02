@@ -23,6 +23,57 @@ type HeaderMenuProps = {
 const menuItemClass =
   'flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800';
 
+function SessionUserInfo({
+  sessionUser,
+  roleLabel,
+  variant,
+}: {
+  sessionUser: { email: string; name: string | null };
+  roleLabel: string | null;
+  variant: 'bar' | 'menu';
+}) {
+  if (variant === 'menu') {
+    return (
+      <div>
+        <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+          {sessionUser.name || sessionUser.email}
+        </p>
+        {sessionUser.name ? (
+          <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+            {sessionUser.email}
+          </p>
+        ) : null}
+        {roleLabel ? (
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+            {roleLabel}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-w-0 text-right">
+      <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
+        {sessionUser.name || sessionUser.email}
+      </p>
+      {sessionUser.name || roleLabel ? (
+        <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+          {sessionUser.name ? sessionUser.email : null}
+          {sessionUser.name && roleLabel ? (
+            <span className="text-slate-300 dark:text-slate-600"> · </span>
+          ) : null}
+          {roleLabel ? (
+            <span className="font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              {roleLabel}
+            </span>
+          ) : null}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function useHoverCapable(): boolean {
   const [hoverCapable, setHoverCapable] = useState(false);
 
@@ -72,16 +123,27 @@ export function HeaderMenu({
     : 'pointer-events-none invisible opacity-0';
 
   return (
-    <div
-      ref={rootRef}
-      className="relative"
-      onMouseEnter={() => {
-        if (hoverCapable) setOpen(true);
-      }}
-      onMouseLeave={() => {
-        if (hoverCapable) setOpen(false);
-      }}
-    >
+    <div className="flex items-center gap-3">
+      {sessionUser ? (
+        <div className="hidden min-w-0 max-w-[10rem] sm:block md:max-w-xs">
+          <SessionUserInfo
+            sessionUser={sessionUser}
+            roleLabel={roleLabel}
+            variant="bar"
+          />
+        </div>
+      ) : null}
+
+      <div
+        ref={rootRef}
+        className="relative"
+        onMouseEnter={() => {
+          if (hoverCapable) setOpen(true);
+        }}
+        onMouseLeave={() => {
+          if (hoverCapable) setOpen(false);
+        }}
+      >
       <button
         type="button"
         aria-haspopup="menu"
@@ -103,20 +165,12 @@ export function HeaderMenu({
           className="overflow-hidden rounded-xl border border-slate-200/80 bg-white py-1.5 shadow-lg shadow-slate-900/10 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/30"
         >
           {sessionUser ? (
-            <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-              <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
-                {sessionUser.name || sessionUser.email}
-              </p>
-              {sessionUser.name ? (
-                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                  {sessionUser.email}
-                </p>
-              ) : null}
-              {roleLabel ? (
-                <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                  {roleLabel}
-                </p>
-              ) : null}
+            <div className="border-b border-slate-100 px-4 py-3 sm:hidden dark:border-slate-800">
+              <SessionUserInfo
+                sessionUser={sessionUser}
+                roleLabel={roleLabel}
+                variant="menu"
+              />
             </div>
           ) : null}
 
@@ -197,6 +251,7 @@ export function HeaderMenu({
             </>
           ) : null}
         </div>
+      </div>
       </div>
     </div>
   );
