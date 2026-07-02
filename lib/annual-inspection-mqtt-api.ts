@@ -16,7 +16,7 @@ const BASE = '/api/mqtt/annual-inspection';
 export const ANNUAL_INSPECTION_STA_INF_SAFETY_TIMEOUT_MS = 30_000;
 
 export const ANNUAL_INSPECTION_STA_INF_TIMEOUT_MESSAGE =
-  'La impresora no respondió a tiempo. Verifique que esté encendida y conectada a la red, e intente nuevamente.';
+  'La impresora no respondió a tiempo. Verifique que esté encendida y conectada a la red.';
 
 export const ANNUAL_INSPECTION_PRINTER_QUERY_ERROR_MESSAGE =
   'No se pudo consultar la impresora. Verifique que esté encendida y conectada a la red, e intente nuevamente.';
