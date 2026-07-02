@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use, useEffect, type ReactNode } from 'react';
+import { useState, use, useEffect, useRef, type ReactNode } from 'react';
 import { useUserProfile } from '@/app/layout';
 import { canCreateTechnicalService } from '@/lib/fiscal-permissions';
 import { printerService } from '@/lib/printer-service';
@@ -132,6 +132,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
 
   const [successOpen, setSuccessOpen] = useState(false);
   const [successRecordId, setSuccessRecordId] = useState<string | null>(null);
+  const sealReplacementSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setBookHref(buildFiscalBookRestoreHref(id));
@@ -209,6 +210,19 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
     };
 
     fetchPrecintos();
+  }, [sealReplaced]);
+
+  useEffect(() => {
+    if (!sealReplaced) return;
+
+    const section = sealReplacementSectionRef.current;
+    if (!section) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
   }, [sealReplaced]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -710,7 +724,10 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
               </div>
 
               {sealReplaced && (
-                <div className="pl-8 pt-2 animate-in slide-in-from-left-2 duration-200 space-y-4">
+                <div
+                  ref={sealReplacementSectionRef}
+                  className="pl-8 pt-2 scroll-mt-6 animate-in slide-in-from-left-2 duration-200 space-y-4"
+                >
                   {serialPrecintoActual && (
                     <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm">
                       <span className="text-amber-700 dark:text-amber-400 font-medium">
