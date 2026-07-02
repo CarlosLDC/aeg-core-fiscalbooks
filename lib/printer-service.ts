@@ -15,6 +15,7 @@ import { toBooleanOrNull, toNumber, toStringOrNull } from '@/lib/api-contract';
 import { assignLibroNumbers } from '@/lib/fiscal-helpers';
 import { mergeTechnicalServiceDescription } from '@/lib/technical-service-description';
 import { withManufacturerCompanyFallback } from '@/lib/manufacturer-company';
+import { resolveEnajenadorSucursal } from '@/lib/enajenador-resolver';
 import {
   AnnualInspection,
   FiscalPrinter,
@@ -207,30 +208,17 @@ function mapDetailToFiscalPrinter(detail: FiscalBookDetailResponse): FiscalPrint
         }
       : null,
     firmware: null,
-    distribuidora: detail.distributor
-      ? {
-          id: detail.distributor.id,
-          sucursal: detail.distributor.branch
-            ? {
-                id: detail.distributor.branch.id,
-                ciudad: detail.distributor.branch.city ?? '',
-                estado: detail.distributor.branch.state ?? '',
-                direccion: detail.distributor.branch.address ?? null,
-                telefono: detail.distributor.branch.phone ?? null,
-                correo: detail.distributor.branch.email ?? null,
-                company: detail.distributor.branch.company
-                  ? {
-                      id: detail.distributor.branch.company.id,
-                      razon_social: detail.distributor.branch.company.businessName ?? '',
-                      rif: detail.distributor.branch.company.rif ?? '',
-                      tipo_contribuyente:
-                        detail.distributor.branch.company.contributorType ?? '',
-                    }
-                  : { id: 0, razon_social: '', rif: '', tipo_contribuyente: '' },
-              }
-            : null,
-        }
-      : null,
+    distribuidora: (() => {
+      const sucursal = resolveEnajenadorSucursal(
+        detail.enajenador,
+        detail.distributor?.branch ?? null,
+      );
+      if (!sucursal) return null;
+      return {
+        id: detail.distributor?.id ?? 0,
+        sucursal,
+      };
+    })(),
     precintos: (detail.seals ?? []).map((p) => ({
       id: String(p.id),
       id_impresora: p.printerId,

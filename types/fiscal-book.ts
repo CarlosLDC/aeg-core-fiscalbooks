@@ -37,6 +37,8 @@ export type FiscalBookDetailResponse = {
   model: FiscalBookModelResponse | null;
   software: FiscalBookSoftwareResponse | null;
   distributor: FiscalBookDistributorResponse | null;
+  /** Sucursal del enajenador (distribuidor, centro de servicio o fabricante AEG). */
+  enajenador: FiscalBookBranchResponse | null;
   seals: FiscalBookSealResponse[];
   technicalServices: FiscalBookTechnicalServiceResponse[];
   annualInspections: FiscalBookAnnualInspectionResponse[];
