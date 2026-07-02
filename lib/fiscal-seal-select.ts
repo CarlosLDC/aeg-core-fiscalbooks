@@ -1,4 +1,5 @@
 import type { SealResponse } from '@/types/seal';
+import { formatSealColor, sealColorMatchesQuery } from '@/lib/seal-color';
 
 export const FISCAL_SEAL_SEARCH_LIMIT = 50;
 
@@ -13,7 +14,7 @@ export function filterFiscalSeals(
     .filter(
       (seal) =>
         seal.serial.toLowerCase().includes(normalized) ||
-        seal.color.toLowerCase().includes(normalized),
+        sealColorMatchesQuery(seal.color, normalized),
     )
     .slice(0, limit);
 }
@@ -24,10 +25,10 @@ export function countFiscalSealMatches(seals: SealResponse[], query: string): nu
   return seals.filter(
     (seal) =>
       seal.serial.toLowerCase().includes(normalized) ||
-      seal.color.toLowerCase().includes(normalized),
+      sealColorMatchesQuery(seal.color, normalized),
   ).length;
 }
 
 export function formatFiscalSealLabel(seal: SealResponse): string {
-  return `${seal.serial} (${seal.color})`;
+  return `${seal.serial} (${formatSealColor(seal.color)})`;
 }
