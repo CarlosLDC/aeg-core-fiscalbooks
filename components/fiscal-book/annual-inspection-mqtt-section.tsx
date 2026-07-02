@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AnnualInspectionChecklistPanel } from '@/components/fiscal-book/annual-inspection-checklist-panel';
 import {
   getAnnualInspectionMqttErrorMessage,
@@ -42,8 +42,12 @@ export function AnnualInspectionMqttSection({
   const [sendingTestCreditNote, setSendingTestCreditNote] = useState(false);
   const [submittingInspection, setSubmittingInspection] = useState(false);
   const [mqttCompleted, setMqttCompleted] = useState(false);
+  const staInfInFlightRef = useRef(false);
 
   async function handleStartInspection() {
+    if (staInfInFlightRef.current) return;
+
+    staInfInFlightRef.current = true;
     setStarting(true);
     setSectionError(null);
     setMqttCompleted(false);
@@ -62,6 +66,7 @@ export function AnnualInspectionMqttSection({
     } catch (err) {
       setSectionError(getAnnualInspectionStaInfErrorMessage(err));
     } finally {
+      staInfInFlightRef.current = false;
       setStarting(false);
     }
   }
@@ -174,7 +179,7 @@ export function AnnualInspectionMqttSection({
           disabled={starting}
           className="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:hover:bg-slate-900"
         >
-          {starting ? 'Consultando impresora…' : 'Consultar registro de impresora'}
+          {starting ? 'Consultando impresora en línea…' : 'Consultar impresora en línea'}
         </button>
       ) : null}
 

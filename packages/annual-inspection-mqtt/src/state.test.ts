@@ -8,6 +8,7 @@ import {
   checklistToSealTampered,
   createAnnualInspectionMqttFlowState,
   formatChecklistItemValue,
+  getAnnualInspectionMqttIneligibilityMessage,
   hasPersistedChecklist,
   isPrinterEligibleForAnnualInspectionMqtt,
   sealTamperedToChkPrecinto,
@@ -39,6 +40,25 @@ describe("@aeg/annual-inspection-mqtt state", () => {
         fiscalSerial: "GRA0000017",
       }),
     ).toBe(false);
+  });
+
+  it("explains missing mac as the ineligibility reason", () => {
+    expect(
+      getAnnualInspectionMqttIneligibilityMessage({
+        status: "enajenada",
+        clientId: 10,
+        macAddress: "",
+        fiscalSerial: "GRA0000017",
+      }),
+    ).toMatch(/dirección MAC/i);
+    expect(
+      getAnnualInspectionMqttIneligibilityMessage({
+        status: "enajenada",
+        clientId: 10,
+        macAddress: "20:6E:F1:88:4C:68",
+        fiscalSerial: "GRA0000017",
+      }),
+    ).toBeNull();
   });
 
   it("blocks credit note until invoice number exists", () => {

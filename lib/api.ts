@@ -2,6 +2,7 @@ import { readErrorMessageFromResponse } from '@/lib/api-error-message';
 import { unwrapApiPayload } from '@/lib/api-contract';
 import { buildApiPath, resolveApiBaseUrl } from '@/lib/api-config';
 import { getStoredToken } from '@/lib/auth-storage';
+import { isTokenExpired } from '@/lib/jwt';
 import { redirectToLoginAfterExpired } from '@/lib/session-expired';
 import { ApiError } from '@/types/auth';
 
@@ -16,6 +17,15 @@ export function getApiBaseUrl(): string {
 type ApiFetchOptions = RequestInit & {
   auth?: boolean;
 };
+
+const SESSION_VALIDATION_PATHS = ['/api/auth/me'];
+
+function shouldLogoutSessionOnUnauthorized(path: string): boolean {
+  const normalized = path.split('?')[0];
+  return SESSION_VALIDATION_PATHS.some(
+    (sessionPath) => normalized === sessionPath || normalized.endsWith(sessionPath),
+  );
+}
 
 export async function apiFetch<T>(
   path: string,
@@ -34,6 +44,10 @@ export async function apiFetch<T>(
     if (!token) {
       throw new ApiError('No hay sesión activa', 401);
     }
+    if (isTokenExpired(token)) {
+      redirectToLoginAfterExpired();
+      throw new ApiError('Sesión expirada o no válida', 401);
+    }
     requestHeaders.set('Authorization', `Bearer ${token}`);
   }
 
@@ -44,7 +58,9 @@ export async function apiFetch<T>(
   });
 
   if (response.status === 401 && auth) {
-    redirectToLoginAfterExpired();
+    if (shouldLogoutSessionOnUnauthorized(path)) {
+      redirectToLoginAfterExpired();
+    }
     throw new ApiError('Sesión expirada o no válida', 401);
   }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   fiscalPrinterToMqttRef,
+  getAnnualInspectionMqttIneligibilityMessage,
   isPrinterEligibleForAnnualInspectionMqtt,
 } from '@/lib/annual-inspection-mqtt-state';
 import type { FiscalPrinter } from '@/lib/types';
@@ -50,6 +51,9 @@ describe('annual-inspection-mqtt-state (fiscalbooks)', () => {
     expect(isPrinterEligibleForAnnualInspectionMqtt(basePrinter({ clientId: null }))).toBe(false);
     expect(isPrinterEligibleForAnnualInspectionMqtt(basePrinter({ direccion_mac: '' }))).toBe(
       false,
+    );
+    expect(getAnnualInspectionMqttIneligibilityMessage(basePrinter({ direccion_mac: '' }))).toMatch(
+      /dirección MAC/i,
     );
   });
 });

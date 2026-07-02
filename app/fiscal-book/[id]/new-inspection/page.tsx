@@ -11,6 +11,7 @@ import {
   checklistToPersisted,
   checklistToSealTampered,
   emptyAnnualInspectionChecklist,
+  getAnnualInspectionMqttIneligibilityMessage,
   isPrinterEligibleForAnnualInspectionMqtt,
 } from '@/lib/annual-inspection-mqtt-state';
 import type { AnnualInspectionMqttCompletion } from '@/lib/annual-inspection-mqtt-state';
@@ -210,6 +211,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
   };
 
   const printerMqttEligible = isPrinterEligibleForAnnualInspectionMqtt(printer);
+  const printerMqttIneligibilityMessage = getAnnualInspectionMqttIneligibilityMessage(printer);
 
   return (
     <main className="container mx-auto px-4 py-12 max-w-3xl flex-1 flex flex-col">
@@ -280,9 +282,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
 
           {!printerMqttEligible ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
-              Este equipo no está enajenado, no tiene cliente asignado o le faltan serial/MAC
-              configurados. La comunicación con impresora solo aplica a equipos enajenados con
-              cliente y conectividad fiscal.
+              {printerMqttIneligibilityMessage}
             </div>
           ) : (
             <AnnualInspectionMqttSection

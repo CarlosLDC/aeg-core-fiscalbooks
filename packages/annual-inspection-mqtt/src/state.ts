@@ -223,6 +223,23 @@ export function isPrinterEligibleForAnnualInspectionMqtt(
   );
 }
 
+export const ANNUAL_INSPECTION_MISSING_MAC_MESSAGE =
+  "Este equipo no tiene dirección MAC registrada. Sin la MAC no es posible comunicarse con la impresora para la inspección anual. Solicite al administrador que registre la dirección MAC del equipo.";
+
+export function getAnnualInspectionMqttIneligibilityMessage(
+  printer: AnnualInspectionMqttPrinterRef,
+): string | null {
+  if (isPrinterEligibleForAnnualInspectionMqtt(printer)) {
+    return null;
+  }
+
+  if (!printer.macAddress?.trim()) {
+    return ANNUAL_INSPECTION_MISSING_MAC_MESSAGE;
+  }
+
+  return 'No es posible iniciar la inspección anual por impresora con este equipo. Contacte al administrador del sistema.';
+}
+
 export type AnnualInspectionChecklistRow = {
   key: AnnualInspectionChecklistKey;
   title: string;

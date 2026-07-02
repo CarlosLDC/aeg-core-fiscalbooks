@@ -12,6 +12,7 @@ import {
 } from '@/lib/auth-profile';
 import { profileToPerfilApp, rolUsuarioLabel, type PerfilApp } from '@/lib/roles';
 import { HeaderMenu } from '@/components/header-menu';
+import { InactivitySessionModal } from '@/components/inactivity-session-modal';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -198,6 +199,11 @@ export default function RootLayout({
               <p>&copy; {new Date().getFullYear()} AEG. Todos los derechos reservados.</p>
             </div>
           </footer>
+
+          <InactivitySessionModal
+            enabled={Boolean(sessionUser) && !isPublicAuthPath && !loading}
+            onExpire={handleLogout}
+          />
         </div>
       </body>
     </html>

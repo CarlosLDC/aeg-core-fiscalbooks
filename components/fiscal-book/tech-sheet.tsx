@@ -68,7 +68,7 @@ export function SingleTechSheet({ review, printer }: { review: TechnicalReview; 
                   <>
                     {review.currentSealSerial}{' '}
                     <span className={review.sealBroken ? 'text-red-500' : 'text-emerald-500'}>
-                      ({review.sealBroken ? 'SÍ' : 'NO'})
+                      ({review.sealBroken ? 'Violentado' : 'En buen estado'})
                     </span>
                   </>
                 ) : (

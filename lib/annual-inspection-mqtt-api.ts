@@ -1,5 +1,8 @@
 import { apiFetch } from '@/lib/api';
 import { messageFromUnknownError } from '@/lib/api-error-message';
+import { ANNUAL_INSPECTION_MISSING_MAC_MESSAGE } from '@/lib/annual-inspection-mqtt-state';
+import { withTimeout } from '@/lib/timeout';
+import { ApiError } from '@/types/auth';
 import type {
   AnnualInspectionStaInfResponse,
   AnnualInspectionSubmitResponse,
@@ -9,7 +12,8 @@ import type {
 
 const BASE = '/api/mqtt/annual-inspection';
 
-export const ANNUAL_INSPECTION_STA_INF_TIMEOUT_MS = 1000;
+/** Red de seguridad si el servidor o el proxy no responden (el backend corta MQTT ~1 s). */
+export const ANNUAL_INSPECTION_STA_INF_SAFETY_TIMEOUT_MS = 30_000;
 
 export const ANNUAL_INSPECTION_STA_INF_TIMEOUT_MESSAGE =
   'La impresora no respondió a tiempo. Verifique que esté encendida y conectada a la red, e intente nuevamente.';
@@ -31,11 +35,26 @@ function isPrinterQueryTimeout(error: unknown): boolean {
   );
 }
 
+function mapAnnualInspectionOperationalError(error: unknown): string | null {
+  const message = messageFromUnknownError(error).toLowerCase();
+  if (message.includes('mac') || message.includes('dirección mac')) {
+    return ANNUAL_INSPECTION_MISSING_MAC_MESSAGE;
+  }
+  return null;
+}
+
 export function getAnnualInspectionMqttErrorMessage(error: unknown): string {
-  return messageFromUnknownError(error);
+  return mapAnnualInspectionOperationalError(error) ?? messageFromUnknownError(error);
 }
 
 export function getAnnualInspectionStaInfErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.status === 401) {
+    return 'Sesión expirada. Vuelva a iniciar sesión.';
+  }
+
+  const mapped = mapAnnualInspectionOperationalError(error);
+  if (mapped) return mapped;
+
   if (isPrinterQueryTimeout(error)) {
     return ANNUAL_INSPECTION_STA_INF_TIMEOUT_MESSAGE;
   }
@@ -46,18 +65,14 @@ export function getAnnualInspectionStaInfErrorMessage(error: unknown): string {
 export async function requestAnnualInspectionStaInf(input: {
   printerId: number;
 }): Promise<AnnualInspectionStaInfResponse> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), ANNUAL_INSPECTION_STA_INF_TIMEOUT_MS);
-
-  try {
-    return await apiFetch<AnnualInspectionStaInfResponse>(`${BASE}/sta-inf`, {
+  return withTimeout(
+    apiFetch<AnnualInspectionStaInfResponse>(`${BASE}/sta-inf`, {
       method: 'POST',
       body: JSON.stringify(input),
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeoutId);
-  }
+    }),
+    ANNUAL_INSPECTION_STA_INF_SAFETY_TIMEOUT_MS,
+    ANNUAL_INSPECTION_STA_INF_TIMEOUT_MESSAGE,
+  );
 }
 
 export async function requestAnnualInspectionTestInvoice(input: {

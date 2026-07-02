@@ -493,7 +493,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                     drawField(
                       'Serial del Precinto Actual',
                       tr.currentSealSerial
-                        ? `${tr.currentSealSerial} (${tr.sealBroken ? 'SÍ' : 'NO'})`
+                        ? `${tr.currentSealSerial} (${tr.sealBroken ? 'Violentado' : 'En buen estado'})`
                         : null,
                       margin,
                       y,

@@ -1,5 +1,6 @@
 import type { FiscalPrinter } from '@/lib/types';
 import {
+  getAnnualInspectionMqttIneligibilityMessage as getIneligibilityMessage,
   isPrinterEligibleForAnnualInspectionMqtt as isEligibleRef,
   type AnnualInspectionMqttPrinterRef,
 } from '@aeg/annual-inspection-mqtt';
@@ -17,4 +18,10 @@ export function fiscalPrinterToMqttRef(printer: FiscalPrinter): AnnualInspection
 
 export function isPrinterEligibleForAnnualInspectionMqtt(printer: FiscalPrinter): boolean {
   return isEligibleRef(fiscalPrinterToMqttRef(printer));
+}
+
+export function getAnnualInspectionMqttIneligibilityMessage(
+  printer: FiscalPrinter,
+): string | null {
+  return getIneligibilityMessage(fiscalPrinterToMqttRef(printer));
 }
