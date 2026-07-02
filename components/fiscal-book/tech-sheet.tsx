@@ -1,6 +1,6 @@
 import type { TechnicalReview, FiscalPrinter } from '@/lib/types';
 import { NoData } from '@/components/no-data';
-import { formatZReportTimestamp } from '@/lib/technical-service-z-dates';
+import { formatZReportDateOnly } from '@/lib/technical-service-z-dates';
 
 export function SingleTechSheet({ review, printer }: { review: TechnicalReview; printer: FiscalPrinter }) {
   return (
@@ -29,27 +29,29 @@ export function SingleTechSheet({ review, printer }: { review: TechnicalReview; 
               <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Fecha de Fin</label>
               <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{review.endDate || <NoData />}</p>
             </div>
-            <div className="md:col-span-2">
+            <div>
               <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Primer Reporte Z</label>
-              <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
-                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight shrink-0">
-                  {review.zReportStart || <NoData />}
-                </p>
-                <p className="font-mono text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-tight">
-                  {formatZReportTimestamp(review.zReportTimestampStart) || <NoData />}
-                </p>
-              </div>
+              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                {review.zReportStart || <NoData />}
+              </p>
             </div>
-            <div className="md:col-span-2">
+            <div>
+              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Fecha de Emisión</label>
+              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                {formatZReportDateOnly(review.zReportTimestampStart) || <NoData />}
+              </p>
+            </div>
+            <div>
               <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Último Reporte Z</label>
-              <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
-                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight shrink-0">
-                  {review.zReportEnd || <NoData />}
-                </p>
-                <p className="font-mono text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-tight">
-                  {formatZReportTimestamp(review.zReportTimestampEnd) || <NoData />}
-                </p>
-              </div>
+              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                {review.zReportEnd || <NoData />}
+              </p>
+            </div>
+            <div>
+              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Fecha de Emisión</label>
+              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                {formatZReportDateOnly(review.zReportTimestampEnd) || <NoData />}
+              </p>
             </div>
           </div>
         </div>
@@ -61,19 +63,30 @@ export function SingleTechSheet({ review, printer }: { review: TechnicalReview; 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Serial del Precinto Actual</label>
-              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{review.currentSealSerial || <NoData />}</p>
-            </div>
-            <div>
-              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">¿Precinto Violentado?</label>
-              <p className={`font-black text-xs uppercase tracking-tight ${review.sealBroken ? 'text-red-500' : 'text-emerald-500'}`}>{review.sealBroken ? 'SÍ' : 'NO'}</p>
-            </div>
-            <div>
-              <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">¿Se Cambió el Precinto?</label>
-              <p className={`font-black text-xs uppercase tracking-tight ${review.sealReplaced ? 'text-blue-500' : 'text-slate-400'}`}>{review.sealReplaced ? 'SÍ' : 'NO'}</p>
+              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                {review.currentSealSerial ? (
+                  <>
+                    {review.currentSealSerial}{' '}
+                    <span className={review.sealBroken ? 'text-red-500' : 'text-emerald-500'}>
+                      ({review.sealBroken ? 'SÍ' : 'NO'})
+                    </span>
+                  </>
+                ) : (
+                  <NoData />
+                )}
+              </p>
             </div>
             <div>
               <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Serial del Nuevo Precinto</label>
-              <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">{review.newSealSerial || <NoData />}</p>
+              {review.sealReplaced && review.newSealSerial ? (
+                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                  {review.newSealSerial}
+                </p>
+              ) : (
+                <p className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-tight">
+                  No se cambió precinto
+                </p>
+              )}
             </div>
           </div>
         </div>

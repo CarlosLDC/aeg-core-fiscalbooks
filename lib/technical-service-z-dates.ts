@@ -60,3 +60,18 @@ export function formatZReportTimestamp(
     return dateStr;
   }
 }
+
+/** Fecha de emisión del Reporte Z en formato YYYY-MM-DD (sin hora). */
+export function formatZReportDateOnly(
+  dateStr: string | null | undefined,
+): string | null {
+  if (!dateStr) return null;
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr.split('T')[0] ?? dateStr;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  } catch {
+    return dateStr.split('T')[0] ?? dateStr;
+  }
+}

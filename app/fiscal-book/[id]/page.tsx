@@ -7,7 +7,7 @@ import { canCreateAnnualInspection, canCreateTechnicalService } from '@/lib/fisc
 import { FiscalPrinter, TechnicalReview, AnnualInspection } from '@/lib/types';
 import { printerService } from '@/lib/printer-service';
 import { truncateVersion, getActiveSealSerial, formatRegistroCreado, fiscalRecordInDateRange } from '@/lib/fiscal-helpers';
-import { formatZReportTimestamp } from '@/lib/technical-service-z-dates';
+import { formatZReportDateOnly } from '@/lib/technical-service-z-dates';
 import { ArrowLeft, ArrowRight, DownloadIcon, MenuIcon, XIcon, PlusIcon } from '@/components/icons';
 import { InfoPage } from '@/components/fiscal-book/info-page';
 import { SingleTechSheet } from '@/components/fiscal-book/tech-sheet';
@@ -459,7 +459,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                       const zStartWidth = drawField('Primera Reporte Z', tr.zReportStart, margin, y);
                       drawField(
                         'Fecha',
-                        formatZReportTimestamp(tr.zReportTimestampStart) ?? '',
+                        formatZReportDateOnly(tr.zReportTimestampStart) ?? '',
                         margin + zStartWidth + 8,
                         y,
                       );
@@ -469,7 +469,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                       const zEndWidth = drawField('Último Reporte Z', tr.zReportEnd, margin, y);
                       drawField(
                         'Fecha',
-                        formatZReportTimestamp(tr.zReportTimestampEnd) ?? '',
+                        formatZReportDateOnly(tr.zReportTimestampEnd) ?? '',
                         margin + zEndWidth + 8,
                         y,
                       );
@@ -490,10 +490,22 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(10);
                     doc.setTextColor(60, 60, 60);
-                    drawField('Serial del Precinto Actual', tr.currentSealSerial, margin, y); y += 6;
-                    doc.text(`¿Precinto Violentado?: ${tr.sealBroken ? 'SÍ' : 'NO'}`, margin, y); y += 6;
-                    doc.text(`¿Se Cambió el Precinto?: ${tr.sealReplaced ? 'SÍ' : 'NO'}`, margin, y); y += 6;
-                    drawField('Serial del Nuevo Precinto', tr.newSealSerial, margin, y); y += 10;
+                    drawField(
+                      'Serial del Precinto Actual',
+                      tr.currentSealSerial
+                        ? `${tr.currentSealSerial} (${tr.sealBroken ? 'SÍ' : 'NO'})`
+                        : null,
+                      margin,
+                      y,
+                    );
+                    y += 6;
+                    drawField(
+                      'Serial del Nuevo Precinto',
+                      tr.sealReplaced && tr.newSealSerial ? tr.newSealSerial : 'No se cambió precinto',
+                      margin,
+                      y,
+                    );
+                    y += 10;
 
                     checkPageBreak();
 

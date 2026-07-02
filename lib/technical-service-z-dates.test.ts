@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatZReportDateOnly,
   formatZReportTimestamp,
   isoToMqttZReportUnix,
   manualZReportDateToIso,
@@ -29,5 +30,14 @@ describe('technical-service-z-dates', () => {
 
     const mqttIso = mqttZReportUnixToIso(1_718_000_000);
     expect(formatZReportTimestamp(mqttIso)).toMatch(/\d{2}:\d{2}:\d{2}$/);
+  });
+
+  it('formats Z report dates without time', () => {
+    const manual = manualZReportDateToIso(new Date(2026, 5, 30, 0, 0, 0, 0));
+    expect(formatZReportDateOnly(manual)).toBe('2026-06-30');
+
+    const mqttIso = mqttZReportUnixToIso(1_718_000_000);
+    expect(formatZReportDateOnly(mqttIso)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(formatZReportDateOnly(mqttIso)).not.toMatch(/:/);
   });
 });
