@@ -46,6 +46,21 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        if (!isFiltersOpen) return;
+
+        const onPointerDown = (event: MouseEvent) => {
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+            if (target.closest('[data-fiscal-book-filter-toggle]')) return;
+            if (target.closest('[data-fiscal-book-filters-panel]')) return;
+            setIsFiltersOpen(false);
+        };
+
+        document.addEventListener('mousedown', onPointerDown);
+        return () => document.removeEventListener('mousedown', onPointerDown);
+    }, [isFiltersOpen]);
+
+    useEffect(() => {
         if (authLoading) return;
 
         const loadData = async () => {
@@ -681,6 +696,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                     {hasLibroFilters && (
                         <button
                             type="button"
+                            data-fiscal-book-filter-toggle
                             onClick={() => setIsFiltersOpen((prev) => !prev)}
                             className={`inline-flex items-center justify-center h-7 w-7 rounded-lg transition-colors ${
                                 isFiltersOpen
@@ -912,7 +928,10 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                         {tabsMenu}
                         {actionMenu}
                         {libroFiltrosInner != null && isFiltersOpen ? (
-                            <div className="flex flex-col gap-2 w-full rounded-xl bg-slate-50/80 dark:bg-slate-900/40 p-3 border border-slate-200/80 dark:border-slate-700/80">
+                            <div
+                                data-fiscal-book-filters-panel
+                                className="flex flex-col gap-2 w-full rounded-xl bg-slate-50/80 dark:bg-slate-900/40 p-3 border border-slate-200/80 dark:border-slate-700/80"
+                            >
                                 {libroFiltrosInner}
                             </div>
                         ) : null}
@@ -921,7 +940,10 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
 
                 {libroFiltrosInner != null ? (
                     isFiltersOpen ? (
-                        <div className="no-print hidden md:flex mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 w-full">
+                        <div
+                            data-fiscal-book-filters-panel
+                            className="no-print hidden md:flex mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 w-full"
+                        >
                             {libroFiltrosInner}
                         </div>
                     ) : null
