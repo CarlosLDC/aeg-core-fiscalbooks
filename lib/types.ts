@@ -77,7 +77,6 @@ export interface TechnicalReview {
   description: string | null;
   observaciones?: string | null;
   costo?: number | null;
-  urlFotos?: string[];
   partsReplaced?: string[];
 }
 
@@ -95,7 +94,6 @@ export interface AnnualInspection {
   precintoViolentado?: boolean;
   status: 'passed' | 'pending';
   observations: string | null;
-  urlFotos?: string[];
   pdfUrl?: string;
   startTime?: string | null;
   endTime?: string | null;

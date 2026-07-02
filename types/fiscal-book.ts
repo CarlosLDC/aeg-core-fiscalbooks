@@ -117,7 +117,6 @@ export type FiscalBookTechnicalServiceResponse = {
   removedSealSerial: string | null;
   notes: string | null;
   cost: number;
-  photoUrls: string[];
 };
 
 export type FiscalBookAnnualInspectionResponse = {
@@ -129,7 +128,6 @@ export type FiscalBookAnnualInspectionResponse = {
   inspector: string | null;
   sealTampered: boolean;
   notes: string | null;
-  photoUrls: string[];
   mqttRegistroImpresora?: string | null;
   mqttSetDateRevOAt?: number | null;
   mqttNumeroFacturaPrueba?: number | null;

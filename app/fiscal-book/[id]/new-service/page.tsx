@@ -333,7 +333,6 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
         notes: null,
         startAt: toIsoUtc(start),
         endAt: toIsoUtc(end),
-        photoUrls: [],
         installedSealId: nuevoPrecintoId,
         removedSealId: idPrecintoActual,
         initialZReport: numZInicial,

@@ -258,10 +258,6 @@ function mapTechnicalService(
   const startAt = pickString(s, 'startAt', 'start_at') ?? s.startAt;
   const endAt = pickString(s, 'endAt', 'end_at') ?? s.endAt;
   const createdAt = pickString(s, 'createdAt', 'created_at') ?? s.createdAt;
-  const photoUrls =
-    (pick(s, 'photoUrls', 'photo_urls', 'urlFotos') as string[] | undefined) ??
-    s.photoUrls ??
-    [];
   const center = withManufacturerCompanyFallback(
     pickString(s, 'serviceCenter', 'service_center', 'centroServicio') ?? s.serviceCenter,
     pickString(s, 'centerRif', 'center_rif') ?? s.centerRif,
@@ -312,7 +308,6 @@ function mapTechnicalService(
     description: failure,
     observaciones: null,
     costo: pickNumber(s, 'cost', 'costo'),
-    urlFotos: photoUrls,
     partsReplaced: [],
   };
 }
@@ -324,10 +319,6 @@ function mapAnnualInspection(
     pickString(i, 'inspectionDate', 'inspection_date', 'date', 'fechaInspeccion') ??
     i.inspectionDate;
   const createdAt = pickString(i, 'createdAt', 'created_at') ?? i.createdAt;
-  const photoUrls =
-    (pick(i, 'photoUrls', 'photo_urls', 'urlFotos') as string[] | undefined) ??
-    i.photoUrls ??
-    [];
   const dateStr = inspectionDate ?? createdAt?.split('T')[0] ?? null;
   const fechaFin = inspectionDate ? new Date(inspectionDate) : null;
   const passed =
@@ -351,7 +342,6 @@ function mapAnnualInspection(
     precintoViolentado: pickBoolean(i, 'sealTampered', 'seal_tampered') ?? false,
     startTime: null,
     endTime: null,
-    urlFotos: photoUrls,
     mqttRegistroImpresora:
       pickString(i, 'mqttRegistroImpresora', 'mqtt_registro_impresora') ??
       i.mqttRegistroImpresora ??

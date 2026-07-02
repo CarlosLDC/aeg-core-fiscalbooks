@@ -6,7 +6,6 @@ export type TechnicalServiceRequest = {
   notes?: string | null;
   startAt: string;
   endAt: string;
-  photoUrls: string[];
   installedSealId?: number | null;
   removedSealId?: number | null;
   initialZReport: number;

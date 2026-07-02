@@ -127,7 +127,6 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
         userId: inspectorInfo.userId,
         sealTampered: checklistToSealTampered(checklist),
         notes: observaciones || null,
-        photoUrls: [],
         inspectionDate: fechaInspeccion,
         mqttRegistroImpresora: mqttCompletion?.registroImpresora ?? null,
         mqttSetDateRevOAt: mqttCompletion?.mqttSetDateRevOTimestamp ?? null,
