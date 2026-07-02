@@ -44,7 +44,7 @@ export function TimeInput({ className, focusClassName = "focus:border-blue-500",
         type="time"
         {...props}
         onClick={handleInputClick}
-        className={`time-input-field w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none transition-all font-medium text-slate-900 dark:text-white cursor-pointer ${focusClassName}`}
+        className={`time-input-field w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none transition-all font-medium text-slate-900 dark:text-white cursor-pointer ${focusClassName}`}
       />
     </div>
   );

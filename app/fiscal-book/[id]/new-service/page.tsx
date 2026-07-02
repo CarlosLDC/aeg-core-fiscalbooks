@@ -53,11 +53,20 @@ function formatCentroDisplay(r: {
   return lugar ? `${org} — ${lugar}` : org;
 }
 
-const dateInputClass =
-  'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100';
+const FORM_CONTROL_HEIGHT = 'h-11';
 
-const readOnlyFieldClass =
-  'w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500';
+const formControlClass = `w-full ${FORM_CONTROL_HEIGHT} px-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white`;
+
+const dateInputClass = `${formControlClass} [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100`;
+
+const numberInputClass = `${formControlClass} font-mono placeholder:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`;
+
+const prefixedNumberInputClass = `${numberInputClass} pl-10 pr-4`;
+
+const readOnlyFieldClass = `w-full ${FORM_CONTROL_HEIGHT} px-4 flex items-center rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-500 dark:text-slate-500`;
+
+const textareaClass =
+  'w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white placeholder:text-slate-400';
 
 function ServiceFormSeparator() {
   return (
@@ -453,7 +462,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                   {tecnicoInfo.usuario_nombre} (V{tecnicoInfo.usuario_cedula?.replace(/-/g, '')})
                 </div>
               ) : (
-                <div className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-slate-400">
+                <div className={`${readOnlyFieldClass} text-slate-400`}>
                   Sin datos de técnico
                 </div>
               )}
@@ -564,7 +573,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                     type="number"
                     min="0"
                     required
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium font-mono text-slate-900 dark:text-white placeholder:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className={prefixedNumberInputClass}
                     placeholder="000123"
                     value={reporteZInicial}
                     onChange={(e) => setReporteZInicial(e.target.value)}
@@ -572,6 +581,21 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                  Fecha Reporte Z Inicial
+                </label>
+                <input
+                  type="date"
+                  required
+                  className={dateInputClass}
+                  value={fechaZInicialDate}
+                  onChange={(e) => setFechaZInicialDate(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
                   Reporte Z Final
@@ -584,27 +608,12 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                     type="number"
                     min="0"
                     required
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium font-mono text-slate-900 dark:text-white placeholder:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className={prefixedNumberInputClass}
                     placeholder="000124"
                     value={reporteZFinal}
                     onChange={(e) => setReporteZFinal(e.target.value)}
                   />
                 </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                  Fecha Reporte Z Inicial
-                </label>
-                <input
-                  type="date"
-                  required
-                  className={dateInputClass}
-                  value={fechaZInicialDate}
-                  onChange={(e) => setFechaZInicialDate(e.target.value)}
-                />
               </div>
 
               <div className="space-y-2">
@@ -639,7 +648,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
                     step="0.01"
                     min="0"
                     required
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium font-mono text-slate-900 dark:text-white placeholder:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className={prefixedNumberInputClass}
                     placeholder="0.00"
                     value={costo}
                     onChange={(e) => setCosto(e.target.value)}
@@ -655,7 +664,7 @@ export default function NewTechnicalService({ params }: { params: Promise<{ id: 
               <textarea
                 required
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 outline-none focus:border-blue-500 transition-all font-medium text-slate-900 dark:text-white placeholder:text-slate-400"
+                className={textareaClass}
                 placeholder="Describa la falla reportada, el trabajo realizado y cualquier observación relevante..."
                 value={fallaReportada}
                 onChange={(e) => setFallaReportada(e.target.value)}

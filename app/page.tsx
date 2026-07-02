@@ -137,6 +137,11 @@ export default function SearchPage() {
               ? 'No se encontró ningún equipo fiscal con un serial parecido al indicado.'
               : 'No se encontró ningún equipo fiscal con un RIF parecido al indicado.',
           );
+          setHasSearched(true);
+          setResults([]);
+          setTotalCount(0);
+          setCurrentPage(1);
+          pendingScrollToResults.current = true;
           setLoading(false);
           return;
         }
@@ -147,8 +152,7 @@ export default function SearchPage() {
       setTotalCount(count ?? 0);
       setCurrentPage(page);
 
-      const resultCount = count ?? 0;
-      if ((isNewSearch && resultCount > 1) || !isNewSearch) {
+      if (isNewSearch) {
         pendingScrollToResults.current = true;
       }
     } catch (error) {

@@ -721,7 +721,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
         hasLibroFilters ? (
             <div className="flex w-full flex-col gap-3">
                 <p className={filterLabelClass}>Filtros</p>
-                <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_9.5rem_9.5rem] lg:items-end">
+                <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_12rem_12rem] lg:items-end">
                     <label className="flex flex-col gap-1 sm:col-span-2 lg:col-span-1">
                         <span className={filterLabelClass}>Buscar</span>
                         <input
@@ -739,7 +739,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                             className={filterFieldClass}
                         />
                     </label>
-                    <label className="flex flex-col gap-1">
+                    <label className="flex min-w-[12rem] flex-col gap-1">
                         <span className={filterLabelClass}>Desde</span>
                         <input
                             type="date"
@@ -756,7 +756,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                             className={filterFieldClass}
                         />
                     </label>
-                    <label className="flex flex-col gap-1">
+                    <label className="flex min-w-[12rem] flex-col gap-1">
                         <span className={filterLabelClass}>Hasta</span>
                         <input
                             type="date"
