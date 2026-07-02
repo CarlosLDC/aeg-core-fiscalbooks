@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use, useEffect, useRef, useMemo, Suspense } from 'react';
+import { useState, use, useEffect, useRef, useMemo, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useUserProfile } from '@/app/layout';
 import { canCreateAnnualInspection, canCreateTechnicalService } from '@/lib/fiscal-permissions';
@@ -14,6 +14,11 @@ import { SingleTechSheet } from '@/components/fiscal-book/tech-sheet';
 import { SingleInspectionSheet } from '@/components/fiscal-book/inspection-sheet';
 import { EmptyState } from '@/components/fiscal-book/empty-state';
 import { buildSearchRestoreHref } from '@/lib/search-return-state';
+import {
+  loadFiscalBookReturnState,
+  saveFiscalBookReturnState,
+  shouldRestoreFiscalBookFromUrl,
+} from '@/lib/fiscal-book-return-state';
 import Link from 'next/link';
 import jsPDF from 'jspdf';
 
@@ -44,6 +49,37 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
+    const bookRestoreStartedRef = useRef(false);
+    const pendingBookRestorePageRef = useRef<number | null>(null);
+    const pendingBookRestoreScrollYRef = useRef<number | null>(null);
+    const skipScrollToTopRef = useRef(false);
+
+    const persistBookReturn = useCallback(() => {
+        saveFiscalBookReturnState({
+            printerId: id,
+            viewMode,
+            currentPage,
+            techFilterQuery,
+            techFilterFrom,
+            techFilterTo,
+            inspFilterQuery,
+            inspFilterFrom,
+            inspFilterTo,
+            isFiltersOpen,
+            scrollY: typeof window !== 'undefined' ? window.scrollY : 0,
+        });
+    }, [
+        id,
+        viewMode,
+        currentPage,
+        techFilterQuery,
+        techFilterFrom,
+        techFilterTo,
+        inspFilterQuery,
+        inspFilterFrom,
+        inspFilterTo,
+        isFiltersOpen,
+    ]);
 
     useEffect(() => {
         if (!isFiltersOpen) return;
@@ -99,6 +135,29 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
         router.replace(`/fiscal-book/${id}`, { scroll: false });
     }, [printer, queryString, id, router]);
 
+    useEffect(() => {
+        if (!printer || bookRestoreStartedRef.current) return;
+        if (typeof window === 'undefined') return;
+        if (!shouldRestoreFiscalBookFromUrl(window.location.search)) return;
+
+        const saved = loadFiscalBookReturnState(id);
+        window.history.replaceState({}, '', `/fiscal-book/${id}`);
+        if (!saved) return;
+
+        bookRestoreStartedRef.current = true;
+        skipScrollToTopRef.current = true;
+        setViewMode(saved.viewMode);
+        setTechFilterQuery(saved.techFilterQuery);
+        setTechFilterFrom(saved.techFilterFrom);
+        setTechFilterTo(saved.techFilterTo);
+        setInspFilterQuery(saved.inspFilterQuery);
+        setInspFilterFrom(saved.inspFilterFrom);
+        setInspFilterTo(saved.inspFilterTo);
+        setIsFiltersOpen(saved.isFiltersOpen);
+        pendingBookRestorePageRef.current = saved.currentPage;
+        pendingBookRestoreScrollYRef.current = saved.scrollY;
+    }, [printer, id]);
+
     const filteredTechRecords = useMemo(() => {
         if (!printer) return [];
         let list = printer.technicalReviews;
@@ -145,8 +204,15 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
         return list;
     }, [printer, inspFilterFrom, inspFilterTo, inspFilterQuery]);
     
-    // Auto-scroll to top on page or tab change
+    // Auto-scroll to top on page or tab change (omit while restoring volver state)
     useEffect(() => {
+        if (pendingBookRestorePageRef.current != null || pendingBookRestoreScrollYRef.current != null) {
+            return;
+        }
+        if (skipScrollToTopRef.current) {
+            skipScrollToTopRef.current = false;
+            return;
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [currentPage, viewMode]);
 
@@ -170,6 +236,36 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
             setCurrentPage(totalPages - 1);
         }
     }, [viewMode, totalPages, currentPage]);
+
+    useEffect(() => {
+        if (pendingBookRestorePageRef.current == null) return;
+
+        if (viewMode === 'info') {
+            pendingBookRestorePageRef.current = null;
+            const scrollY = pendingBookRestoreScrollYRef.current;
+            pendingBookRestoreScrollYRef.current = null;
+            if (scrollY != null) {
+                requestAnimationFrame(() => {
+                    window.scrollTo({ top: scrollY, behavior: 'smooth' });
+                });
+            }
+            return;
+        }
+
+        const page = Math.min(
+            pendingBookRestorePageRef.current,
+            Math.max(0, records.length - 1),
+        );
+        setCurrentPage(page);
+        pendingBookRestorePageRef.current = null;
+        const scrollY = pendingBookRestoreScrollYRef.current;
+        pendingBookRestoreScrollYRef.current = null;
+        if (scrollY != null) {
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: scrollY, behavior: 'smooth' });
+            });
+        }
+    }, [viewMode, records.length]);
 
     if (authLoading || loading) {
         return (
@@ -717,6 +813,7 @@ function FiscalBookDetail({ params }: { params: Promise<{ id: string }> }) {
                         : canCreateAnnualInspection(authProfile)) && (
                         <Link
                             href={`/fiscal-book/${id}/${viewMode === 'tech' ? 'new-service' : 'new-inspection'}`}
+                            onClick={persistBookReturn}
                             className="flex justify-center items-center h-7 w-7 rounded-lg transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700"
                             title={viewMode === 'tech' ? 'Añadir Servicio' : 'Añadir Inspección'}
                         >

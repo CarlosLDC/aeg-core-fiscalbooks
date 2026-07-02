@@ -18,6 +18,7 @@ import type { AnnualInspectionMqttCompletion } from '@/lib/annual-inspection-mqt
 import { printerService } from '@/lib/printer-service';
 import { createAnnualInspection } from '@/lib/annual-inspections-api';
 import { messageFromUnknownError } from '@/lib/api-error-message';
+import { buildFiscalBookRestoreHref } from '@/lib/fiscal-book-return-state';
 import { ArrowLeft } from '@/components/icons';
 import { SuccessModal } from '@/components/success-modal';
 
@@ -30,6 +31,7 @@ type InspectorInfo = {
 export default function NewAnnualInspection({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const [bookHref, setBookHref] = useState(`/fiscal-book/${id}`);
   const { authProfile, loading: authLoading } = useUserProfile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +53,10 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
   );
 
   const cleanPrinterId = Number(id.replace('mock-p-', '').replace('fp-', ''));
+
+  useEffect(() => {
+    setBookHref(buildFiscalBookRestoreHref(id));
+  }, [id]);
 
   useEffect(() => {
     if (authLoading || !authProfile) return;
@@ -150,7 +156,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
           <p className="text-slate-800 dark:text-slate-200 font-semibold mb-4">
             Solo usuarios con rol <strong>administrador</strong>, <strong>distribuidor</strong> o <strong>técnico de centro de servicio</strong> pueden registrar inspecciones en el libro fiscal.
           </p>
-          <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
+          <Link href={bookHref} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
             Volver al libro fiscal
           </Link>
         </div>
@@ -174,7 +180,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
           <p className="text-slate-800 dark:text-slate-200 font-semibold mb-4">
             No se encontró el equipo o no tiene permiso para registrar inspecciones en esta sucursal.
           </p>
-          <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
+          <Link href={bookHref} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
             Volver al libro fiscal
           </Link>
         </div>
@@ -190,7 +196,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
           <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">
             {inspectorLoadError ?? 'Su perfil no tiene un usuario vinculado. Contacte al administrador del sistema.'}
           </p>
-          <Link href={`/fiscal-book/${id}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
+          <Link href={bookHref} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
             Volver al libro fiscal
           </Link>
         </div>
@@ -227,7 +233,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
         }}
       />
       <div className="mb-8">
-        <Link href={`/fiscal-book/${id}`} className="inline-flex items-center gap-2 text-muted hover:text-foreground transition-colors mb-4">
+        <Link href={bookHref} className="inline-flex items-center gap-2 text-muted hover:text-foreground transition-colors mb-4">
           <ArrowLeft size={18} />
           <span className="text-sm font-medium">Volver al libro</span>
         </Link>
@@ -302,7 +308,7 @@ export default function NewAnnualInspection({ params }: { params: Promise<{ id: 
 
           <div className="pt-4 flex items-center justify-end gap-3">
             <Link
-              href={`/fiscal-book/${id}`}
+              href={bookHref}
               className="px-6 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               Cancelar
