@@ -3,8 +3,10 @@
 import { useCallback, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import {
+  formatInspectionQrLookupDate,
   getQrLookupErrorMessage,
   lookupInspectionByQr,
+  type FiscalBookLookupInspectionByQrResponse,
 } from '@/lib/annual-inspection-qr-lookup-api';
 import { canUseQrCamera } from '@/components/qr-code-scanner';
 import { QrScannerErrorBoundary } from '@/components/qr-scanner-error-boundary';
@@ -32,7 +34,8 @@ export function AnnualInspectionQrLookupPanel() {
   const [qrCodigo, setQrCodigo] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [verified, setVerified] = useState(false);
+  const [lookupResult, setLookupResult] =
+    useState<FiscalBookLookupInspectionByQrResponse | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraSession, setCameraSession] = useState(0);
   const scanHandledRef = useRef(false);
@@ -42,17 +45,17 @@ export function AnnualInspectionQrLookupPanel() {
       const trimmed = code.trim();
       if (!trimmed) {
         setError('Ingrese o escanee un código QR válido.');
-        setVerified(false);
+        setLookupResult(null);
         return;
       }
 
       setLoading(true);
       setError(null);
-      setVerified(false);
+      setLookupResult(null);
 
       try {
-        await lookupInspectionByQr(trimmed);
-        setVerified(true);
+        const result = await lookupInspectionByQr(trimmed);
+        setLookupResult(result);
       } catch (err) {
         setError(getQrLookupErrorMessage(err));
       } finally {
@@ -95,7 +98,7 @@ export function AnnualInspectionQrLookupPanel() {
               setInputMode('camera');
               setCameraError(null);
               setError(null);
-              setVerified(false);
+              setLookupResult(null);
               setCameraSession((session) => session + 1);
             }}
             className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
@@ -160,7 +163,7 @@ export function AnnualInspectionQrLookupPanel() {
               onChange={(e) => {
                 setQrCodigo(e.target.value);
                 setError(null);
-                setVerified(false);
+                setLookupResult(null);
               }}
               placeholder="Pegue aquí el contenido del QR…"
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm text-slate-900 outline-none focus:border-blue-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
@@ -177,9 +180,27 @@ export function AnnualInspectionQrLookupPanel() {
         )}
       </div>
 
-      {verified ? (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300">
-          El registro existe.
+      {lookupResult ? (
+        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm dark:border-emerald-900/40 dark:bg-emerald-950/20">
+          <p className="font-semibold text-emerald-900 dark:text-emerald-200">
+            Inspección verificada
+          </p>
+          <dl className="mt-2 space-y-2 text-emerald-800 dark:text-emerald-300">
+            <div>
+              <dt className="text-[10px] font-bold uppercase tracking-wide text-emerald-700/80 dark:text-emerald-400/80">
+                Serial de la impresora
+              </dt>
+              <dd className="font-mono text-sm font-semibold">{lookupResult.fiscalSerial}</dd>
+            </div>
+            <div>
+              <dt className="text-[10px] font-bold uppercase tracking-wide text-emerald-700/80 dark:text-emerald-400/80">
+                Fecha de inspección
+              </dt>
+              <dd className="font-mono text-sm">
+                {formatInspectionQrLookupDate(lookupResult.fecha)}
+              </dd>
+            </div>
+          </dl>
         </div>
       ) : null}
 

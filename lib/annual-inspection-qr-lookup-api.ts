@@ -22,6 +22,20 @@ export async function lookupInspectionByQr(
   );
 }
 
+export function formatInspectionQrLookupDate(fecha: string): string {
+  const trimmed = fecha.trim();
+  if (!trimmed) return '—';
+
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) return trimmed;
+
+  return parsed.toLocaleDateString('es-VE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
 export function getQrLookupErrorMessage(error: unknown): string {
   return messageFromUnknownError(error);
 }
