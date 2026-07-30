@@ -7,6 +7,7 @@ export type StoredUserProfile = {
   distributorId: number | null;
   name: string | null;
   nationalId: string | null;
+  canWriteAnnualInspection?: boolean;
 };
 
 const PROFILE_KEY = 'aeg-user-profile';
@@ -35,6 +36,10 @@ export function getStoredProfile(): StoredUserProfile | null {
       distributorId: parsed.distributorId ?? null,
       name: typeof parsed.name === 'string' ? parsed.name : null,
       nationalId: typeof parsed.nationalId === 'string' ? parsed.nationalId : null,
+      canWriteAnnualInspection:
+        typeof parsed.canWriteAnnualInspection === 'boolean'
+          ? parsed.canWriteAnnualInspection
+          : undefined,
     };
   } catch {
     return null;

@@ -22,6 +22,7 @@ const adminProfile: UserProfile = {
   role: 'ADMIN',
   branchId: null,
   distributorId: null,
+  canWriteAnnualInspection: true,
 };
 
 describe('resolveTechnicalServiceActor', () => {

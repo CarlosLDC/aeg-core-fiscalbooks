@@ -17,6 +17,7 @@ function profile(role: UserProfile['role'], extras: Partial<UserProfile> = {}): 
     role,
     branchId: null,
     distributorId: null,
+    canWriteAnnualInspection: true,
     ...extras,
   };
 }
@@ -42,6 +43,14 @@ describe('fiscal-permissions', () => {
     expect(canCreateAnnualInspection(profile('TECHNICIAN', { branchId: 3 }))).toBe(true);
     expect(canCreateAnnualInspection(profile('TECHNICIAN'))).toBe(false);
     expect(canCreateAnnualInspection(profile('SENIAT'))).toBe(false);
+  });
+
+  it('blocks annual inspections when distributor flag is disabled', () => {
+    expect(
+      canCreateAnnualInspection(
+        profile('DISTRIBUTOR', { canWriteAnnualInspection: false }),
+      ),
+    ).toBe(false);
   });
 
   it('allows fiscal book read for all portal roles', () => {

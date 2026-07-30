@@ -12,11 +12,12 @@ export function canCreateTechnicalService(profile: UserProfile | null | undefine
 
 export function canCreateAnnualInspection(profile: UserProfile | null | undefined): boolean {
   if (!profile) return false;
-  return (
-    profile.role === 'ADMIN' ||
-    profile.role === 'DISTRIBUTOR' ||
-    isServiceCenterTechnician(profile)
-  );
+  if (profile.role === 'ADMIN') return true;
+  if (isServiceCenterTechnician(profile)) return true;
+  if (profile.role === 'DISTRIBUTOR') {
+    return profile.canWriteAnnualInspection !== false;
+  }
+  return false;
 }
 
 export function canReadFiscalBook(role: Role | null | undefined): boolean {

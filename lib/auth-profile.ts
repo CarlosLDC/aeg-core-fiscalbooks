@@ -26,6 +26,8 @@ export type UserProfile = {
   role: Role;
   branchId: number | null;
   distributorId: number | null;
+  /** Capacidad efectiva; default true si ausente (compat). */
+  canWriteAnnualInspection: boolean;
 };
 
 function normalizeRole(value: unknown): Role | null {
@@ -115,6 +117,19 @@ function nationalIdFromMe(me: Awaited<ReturnType<typeof fetchAuthMe>> | null): s
   return toStringOrNull(me?.nationalId) ?? toStringOrNull(me?.national_id);
 }
 
+function canWriteAnnualInspectionFromMe(
+  me: Awaited<ReturnType<typeof fetchAuthMe>> | null,
+): boolean | null {
+  if (!me) return null;
+  if (typeof me.canWriteAnnualInspection === 'boolean') {
+    return me.canWriteAnnualInspection;
+  }
+  if (typeof me.can_write_annual_inspection === 'boolean') {
+    return me.can_write_annual_inspection;
+  }
+  return null;
+}
+
 function profileFromMe(
   username: string,
   me: Awaited<ReturnType<typeof fetchAuthMe>>,
@@ -132,6 +147,7 @@ function profileFromMe(
     role: roleFromMe(me) ?? fallbackRole,
     branchId: branchIdFromMe(me),
     distributorId: distributorIdFromMe(me),
+    canWriteAnnualInspection: canWriteAnnualInspectionFromMe(me) ?? true,
   };
 }
 
@@ -185,6 +201,7 @@ export async function resolveAndStoreUserProfile(
     role,
     branchId: branchId ?? null,
     distributorId: distributorId ?? null,
+    canWriteAnnualInspection: canWriteAnnualInspectionFromMe(me) ?? true,
   };
 
   setStoredProfile(
@@ -195,6 +212,7 @@ export async function resolveAndStoreUserProfile(
       distributorId: profile.distributorId,
       name: profile.name,
       nationalId: profile.nationalId,
+      canWriteAnnualInspection: profile.canWriteAnnualInspection,
     },
     remember,
   );
@@ -219,6 +237,7 @@ export function getProfileFromStorage(
     branchId: stored?.branchId ?? getBranchIdFromToken(token) ?? null,
     distributorId:
       stored?.distributorId ?? getDistributorIdFromToken(token) ?? null,
+    canWriteAnnualInspection: stored?.canWriteAnnualInspection !== false,
   };
 }
 
@@ -243,6 +262,8 @@ export async function refreshUserProfileFromApi(
       ...profileFromMe(username, me, userId, nationalId, current.role),
       branchId: branchIdFromMe(me) ?? current.branchId,
       distributorId: distributorIdFromMe(me) ?? current.distributorId,
+      canWriteAnnualInspection:
+        canWriteAnnualInspectionFromMe(me) ?? current.canWriteAnnualInspection,
     };
 
     setStoredProfile(
@@ -253,6 +274,7 @@ export async function refreshUserProfileFromApi(
         distributorId: profile.distributorId,
         name: profile.name,
         nationalId: profile.nationalId,
+        canWriteAnnualInspection: profile.canWriteAnnualInspection,
       },
       isRemembered(),
     );

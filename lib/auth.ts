@@ -78,6 +78,7 @@ export async function establishSessionFromHandoff(
       role,
       branchId: getBranchIdFromToken(token),
       distributorId: getDistributorIdFromToken(token),
+      canWriteAnnualInspection: true,
     };
 
     setStoredProfile(
@@ -88,6 +89,7 @@ export async function establishSessionFromHandoff(
         distributorId: profile.distributorId,
         name: profile.name,
         nationalId: profile.nationalId,
+        canWriteAnnualInspection: profile.canWriteAnnualInspection,
       },
       remember,
     );

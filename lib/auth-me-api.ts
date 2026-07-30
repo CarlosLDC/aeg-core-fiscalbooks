@@ -18,6 +18,8 @@ export type AuthMeResponse = {
   nationalId?: string | null;
   national_id?: string | null;
   enabled?: boolean;
+  canWriteAnnualInspection?: boolean;
+  can_write_annual_inspection?: boolean;
 };
 
 export async function fetchAuthMe(): Promise<AuthMeResponse> {
