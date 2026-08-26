@@ -153,6 +153,8 @@ export interface FiscalPrinter {
   fecha_instalacion?: string | null;
   direccion_mac?: string | null;
   clientId?: number | null;
+  llave_encriptacion?: string | null;
+  encryptionKey?: string | null;
 
   businessName: string | null;
   rif: string | null;

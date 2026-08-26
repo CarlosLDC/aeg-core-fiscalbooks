@@ -42,6 +42,8 @@ export type FiscalBookDetailResponse = {
   seals: FiscalBookSealResponse[];
   technicalServices: FiscalBookTechnicalServiceResponse[];
   annualInspections: FiscalBookAnnualInspectionResponse[];
+  encryptionKey?: string | null;
+  llave_encriptacion?: string | null;
 };
 
 export type FiscalBookBranchResponse = {

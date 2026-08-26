@@ -181,6 +181,14 @@ export function InfoPage({ printer }: { printer: FiscalPrinter }) {
                 )}
               </div>
             </div>
+            {printer.llave_encriptacion && (
+              <div>
+                <label className="text-[9px] font-bold uppercase tracking-tighter text-slate-400 dark:text-slate-500 block mb-1">Llave de Encriptación</label>
+                <p className="font-mono text-slate-900 dark:text-white text-xs font-black uppercase tracking-tight">
+                  {printer.llave_encriptacion}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>

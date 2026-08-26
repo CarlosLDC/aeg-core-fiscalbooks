@@ -144,6 +144,14 @@ function mapDetailToFiscalPrinter(detail: FiscalBookDetailResponse): FiscalPrint
       pickString(detail, 'installationDate', 'installation_date') ??
       detail.installationDate,
     direccion_mac: pickString(detail, 'macAddress', 'mac_address') ?? detail.macAddress,
+    llave_encriptacion:
+      pickString(detail, 'encryptionKey', 'llaveEncrip', 'llave_encriptacion') ??
+      detail.encryptionKey ??
+      null,
+    encryptionKey:
+      pickString(detail, 'encryptionKey', 'llaveEncrip', 'llave_encriptacion') ??
+      detail.encryptionKey ??
+      null,
     clientId: pickNumber(detail, 'clientId', 'client_id') ?? detail.clientId,
     id_modelo_impresora: modelId != null ? String(modelId) : '',
     id_sucursal: branchId != null ? String(branchId) : null,
