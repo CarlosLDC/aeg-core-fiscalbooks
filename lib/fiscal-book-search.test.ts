@@ -45,6 +45,7 @@ describe('fiscal-book-search', () => {
     expect(isBackendExactSearch('GRA0000123', 'serial')).toBe(true);
     expect(isBackendExactSearch('GRA000', 'serial')).toBe(false);
     expect(isBackendExactSearch('J12345678', 'rif')).toBe(true);
+    expect(isBackendExactSearch('J-12345678', 'rif')).toBe(true);
     expect(isBackendExactSearch('J123', 'rif')).toBe(false);
   });
 

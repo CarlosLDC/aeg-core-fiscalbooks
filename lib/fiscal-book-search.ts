@@ -3,7 +3,7 @@ import type { FiscalPrinter } from '@/lib/types';
 export type FiscalBookSearchType = 'serial' | 'rif';
 
 const EXACT_SERIAL_PATTERN = /^[A-Z]{3}[0-9]{7}$/;
-const EXACT_RIF_PATTERN = /^[VEJPG][0-9]{7,9}$/;
+const EXACT_RIF_PATTERN = /^[VEJPG]-?[0-9]{7,9}$/;
 
 export const MIN_PARTIAL_SEARCH_LENGTH = 2;
 
@@ -20,7 +20,7 @@ export function isExactSerialSearch(term: string): boolean {
 }
 
 export function isExactRifSearch(term: string): boolean {
-  return EXACT_RIF_PATTERN.test(term);
+  return EXACT_RIF_PATTERN.test(term.trim().toUpperCase());
 }
 
 export function isBackendExactSearch(

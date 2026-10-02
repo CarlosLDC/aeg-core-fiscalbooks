@@ -1,6 +1,6 @@
 /** Empresa fabricante (administrador AEG) en servicios e inspecciones sin centro de servicio. */
 export const MANUFACTURER_COMPANY_NAME = 'ALPHA ENGINEER GROUP, C.A.';
-export const MANUFACTURER_COMPANY_RIF = 'J504594369';
+export const MANUFACTURER_COMPANY_RIF = 'J-504594369';
 
 export function manufacturerCompanyFields(): {
   companyName: string;

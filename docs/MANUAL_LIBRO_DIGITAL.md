@@ -3,7 +3,7 @@
 ## Sistema de Gestión de Máquinas Fiscales
 
 **Empresa:** ALPHA ENGINEER GROUP, C.A. (AEG)  
-**RIF:** J-50459436-9  
+**RIF:** J-504594369  
 **Providencia:** SENIAT 0141  
 **Versión del documento:** 1.0  
 **Fecha:** Mayo 2026
@@ -115,7 +115,7 @@ El sistema ofrece dos modalidades de búsqueda mediante un selector segmentado:
 | Tipo | Formato Esperado | Ejemplo |
 |---|---|---|
 | **Serial** | 3 letras mayúsculas + 7 dígitos | `GRA0000123` |
-| **RIF** | V/E/J/P/G + 7 a 9 dígitos | `J12345678` |
+| **RIF** | V/E/J/P/G con guion y 7 a 9 dígitos | `J-123456789` |
 
 ### 4.2 Cómo Buscar
 
@@ -205,7 +205,7 @@ Información fija de Alpha Engineer Group, C.A.:
 | Campo | Valor |
 |---|---|
 | Razón Social | ALPHA ENGINEER GROUP, C.A. |
-| RIF | J504594369 |
+| RIF | J-504594369 |
 | Estado / Ciudad | MIRANDA / LOS TEQUES |
 | Domicilio Fiscal | Avenida Bicentenario, Redoma del Tambor, Edificio Veracruz, Piso 1, Local N° 3 |
 | Teléfono | 584242913038 |
