@@ -12,6 +12,11 @@ import {
   setStoredToken,
 } from '@/lib/auth-storage';
 import {
+  clearLastActivity,
+  isSessionExpiredByInactivity,
+  recordLastActivity,
+} from '@/lib/inactivity-session';
+import {
   getBranchIdFromToken,
   getDistributorIdFromToken,
   getNationalIdFromToken,
@@ -52,6 +57,7 @@ export async function login(
   }
 
   setStoredToken(token, remember);
+  recordLastActivity();
   await resolveAndStoreUserProfile(token, remember);
   return { ...data, token };
 }
@@ -62,6 +68,7 @@ export async function establishSessionFromHandoff(
   remember: boolean,
 ): Promise<UserProfile> {
   setStoredToken(token, remember);
+  recordLastActivity();
   try {
     return await resolveAndStoreUserProfile(token, remember);
   } catch (error) {
@@ -101,14 +108,16 @@ export async function establishSessionFromHandoff(
 export function logout() {
   clearStoredToken();
   clearUserProfile();
+  clearLastActivity();
 }
 
 export function getSession(): (UserProfile & { token: string }) | null {
   const token = getStoredToken();
-  if (!token || isTokenExpired(token)) {
+  if (!token || isTokenExpired(token) || isSessionExpiredByInactivity()) {
     if (token) {
       clearStoredToken();
       clearUserProfile();
+      clearLastActivity();
     }
     return null;
   }

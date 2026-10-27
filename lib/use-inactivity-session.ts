@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ACTIVITY_STORAGE_KEY,
   INACTIVITY_ACTIVITY_EVENTS,
   INACTIVITY_TIMEOUT_MS,
   INACTIVITY_WARNING_SECONDS,
+  getInactivityStatus,
+  recordLastActivity,
 } from '@/lib/inactivity-session';
 
 type UseInactivitySessionOptions = {
@@ -16,11 +19,11 @@ export function useInactivitySession({ enabled, onExpire }: UseInactivitySession
   const [warningOpen, setWarningOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(INACTIVITY_WARNING_SECONDS);
 
-  const lastActivityRef = useRef(Date.now());
   const warningOpenRef = useRef(false);
   const onExpireRef = useRef(onExpire);
   const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastRecordTimeRef = useRef<number>(0);
 
   useEffect(() => {
     onExpireRef.current = onExpire;
@@ -40,99 +43,178 @@ export function useInactivitySession({ enabled, onExpire }: UseInactivitySession
     }
   }, []);
 
-  const startCountdown = useCallback(() => {
+  const clearAllTimers = useCallback(() => {
+    clearInactivityTimer();
     clearCountdown();
-    setSecondsLeft(INACTIVITY_WARNING_SECONDS);
-    countdownIntervalRef.current = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearCountdown();
-          clearInactivityTimer();
-          warningOpenRef.current = false;
-          setWarningOpen(false);
-          onExpireRef.current();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
   }, [clearCountdown, clearInactivityTimer]);
 
-  const openWarning = useCallback(() => {
-    clearInactivityTimer();
-    warningOpenRef.current = true;
-    setWarningOpen(true);
-    startCountdown();
-  }, [clearInactivityTimer, startCountdown]);
-
-  const scheduleInactivityCheck = useCallback(() => {
-    clearInactivityTimer();
-    if (!enabled || warningOpenRef.current) return;
-
-    const elapsed = Date.now() - lastActivityRef.current;
-    const remaining = Math.max(0, INACTIVITY_TIMEOUT_MS - elapsed);
-
-    inactivityTimerRef.current = setTimeout(() => {
-      openWarning();
-    }, remaining);
-  }, [clearInactivityTimer, enabled, openWarning]);
-
-  const stayLoggedIn = useCallback(() => {
-    lastActivityRef.current = Date.now();
-    warningOpenRef.current = false;
-    setWarningOpen(false);
-    clearCountdown();
-    setSecondsLeft(INACTIVITY_WARNING_SECONDS);
-    scheduleInactivityCheck();
-  }, [clearCountdown, scheduleInactivityCheck]);
-
-  const registerActivity = useCallback(() => {
-    lastActivityRef.current = Date.now();
-    if (warningOpenRef.current) {
-      stayLoggedIn();
+  const closeWarning = useCallback(() => {
+    if (!warningOpenRef.current) {
+      clearCountdown();
       return;
     }
-    scheduleInactivityCheck();
-  }, [scheduleInactivityCheck, stayLoggedIn]);
+    warningOpenRef.current = false;
+    setWarningOpen(false);
+    setSecondsLeft(INACTIVITY_WARNING_SECONDS);
+    clearCountdown();
+  }, [clearCountdown]);
+
+  const startCountdown = useCallback(
+    (initialSeconds?: number) => {
+      clearCountdown();
+      const sec =
+        typeof initialSeconds === 'number' && initialSeconds > 0
+          ? initialSeconds
+          : INACTIVITY_WARNING_SECONDS;
+
+      setSecondsLeft(sec);
+      warningOpenRef.current = true;
+      setWarningOpen(true);
+
+      countdownIntervalRef.current = setInterval(() => {
+        setSecondsLeft((prev) => {
+          if (prev <= 1) {
+            clearAllTimers();
+            warningOpenRef.current = false;
+            setWarningOpen(false);
+            onExpireRef.current();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    },
+    [clearAllTimers, clearCountdown],
+  );
+
+  const scheduleIdle = useCallback(
+    (delayMs: number = INACTIVITY_TIMEOUT_MS) => {
+      clearInactivityTimer();
+      inactivityTimerRef.current = setTimeout(() => {
+        startCountdown();
+      }, Math.max(0, delayMs));
+    },
+    [clearInactivityTimer, startCountdown],
+  );
+
+  const resetIdleTimer = useCallback(
+    (forceRecord = false) => {
+      if (!enabled) return;
+
+      closeWarning();
+      clearInactivityTimer();
+
+      const now = Date.now();
+      if (forceRecord || now - lastRecordTimeRef.current >= 1000) {
+        recordLastActivity(now);
+        lastRecordTimeRef.current = now;
+      }
+
+      scheduleIdle(INACTIVITY_TIMEOUT_MS);
+    },
+    [clearInactivityTimer, closeWarning, enabled, scheduleIdle],
+  );
+
+  const evaluateInactivity = useCallback(() => {
+    if (!enabled) return;
+
+    const status = getInactivityStatus();
+
+    if (status.isExpired) {
+      clearAllTimers();
+      closeWarning();
+      onExpireRef.current();
+      return;
+    }
+
+    if (status.isInWarning) {
+      clearInactivityTimer();
+      if (!warningOpenRef.current) {
+        startCountdown(status.warningSecondsLeft);
+      }
+      return;
+    }
+
+    if (status.lastActivity === null) {
+      resetIdleTimer(true);
+    } else {
+      closeWarning();
+      scheduleIdle(status.remainingIdleMs);
+    }
+  }, [
+    clearAllTimers,
+    clearInactivityTimer,
+    closeWarning,
+    enabled,
+    resetIdleTimer,
+    scheduleIdle,
+    startCountdown,
+  ]);
+
+  const stayLoggedIn = useCallback(() => {
+    resetIdleTimer(true);
+  }, [resetIdleTimer]);
 
   useEffect(() => {
     if (!enabled) {
-      clearInactivityTimer();
-      clearCountdown();
-      warningOpenRef.current = false;
-      setWarningOpen(false);
-      setSecondsLeft(INACTIVITY_WARNING_SECONDS);
+      clearAllTimers();
+      if (warningOpenRef.current) {
+        closeWarning();
+      }
       return;
     }
 
-    lastActivityRef.current = Date.now();
-    scheduleInactivityCheck();
-
     const onActivity = () => {
-      registerActivity();
+      if (warningOpenRef.current) return;
+      resetIdleTimer();
+    };
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== ACTIVITY_STORAGE_KEY) return;
+      if (!event.newValue) {
+        clearAllTimers();
+        closeWarning();
+        onExpireRef.current();
+        return;
+      }
+      evaluateInactivity();
+    };
+
+    const onVisibilityOrFocus = () => {
+      evaluateInactivity();
     };
 
     for (const event of INACTIVITY_ACTIVITY_EVENTS) {
       window.addEventListener(event, onActivity, { passive: true });
     }
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('visibilitychange', onVisibilityOrFocus);
+    window.addEventListener('focus', onVisibilityOrFocus);
+
+    evaluateInactivity();
 
     return () => {
-      clearInactivityTimer();
-      clearCountdown();
       for (const event of INACTIVITY_ACTIVITY_EVENTS) {
         window.removeEventListener(event, onActivity);
       }
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('visibilitychange', onVisibilityOrFocus);
+      window.removeEventListener('focus', onVisibilityOrFocus);
+      clearAllTimers();
+      if (warningOpenRef.current) {
+        closeWarning();
+      }
     };
   }, [
-    clearCountdown,
-    clearInactivityTimer,
+    clearAllTimers,
+    closeWarning,
     enabled,
-    registerActivity,
-    scheduleInactivityCheck,
+    evaluateInactivity,
+    resetIdleTimer,
   ]);
 
   return {
-    warningOpen,
+    warningOpen: enabled && warningOpen,
     secondsLeft,
     stayLoggedIn,
   };
